@@ -9,9 +9,9 @@ parser.add_argument('-v', '--version', { action: 'version', version });
 parser.add_argument('-tf', '--targetFile');
 parser.add_argument('-p', '--project');
 parser.add_argument('-gt', '--generateTask');
-const args: string[] = parser.parse_args() as string[];
+const args = parser.parse_args() as Record<string, string>;
 
-const targetFilePath: string = args['targetFile'] as string;
+const targetFilePath: string = args['targetFile'];
 const projectName: Projects = args['project'] as Projects;
 const generateTask: Tasks = args['generateTask'] as Tasks;
 

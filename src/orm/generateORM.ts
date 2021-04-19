@@ -1,6 +1,6 @@
 import { IColumnProps, IOrmCatalog, LayerMetadataORM } from '@map-colonies/mc-model-types';
 import { Project, Scope } from 'ts-morph';
-import Generator from '../dictionary';
+import Generator from '../generate';
 import { Projects, Tasks } from '../models/enums';
 
 const generateORM = async (targetFilePath: string, ormCatalog: IOrmCatalog): Promise<void> => {

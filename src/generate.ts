@@ -20,10 +20,11 @@ class Generator {
     if (this.dict[project] === undefined) {
       this.dict[project] = {};
     }
-    if (this.dict[project][task] !== undefined) {
+    if (this.dict[project]?.[task] !== undefined) {
       throw new Error(`${project}-${task} is already registered`);
     }
-    this.dict[project][task] = func;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.dict[project]![task] = func;
   }
 
   public async runOrDie(project: Projects, task: Tasks, target: string): Promise<void> {
@@ -33,7 +34,7 @@ class Generator {
     if (this.dict[project]?.[task] === undefined) {
       throw new Error(`${project} - ${task} is not implemented or registered`);
     }
-    await this.dict[project][task](target);
+    await this.dict[project]?.[task]?.(target);
   }
 }
 
