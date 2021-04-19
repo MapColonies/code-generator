@@ -1,10 +1,9 @@
 export enum Projects {
-  Raster = 'raster',
-  ThreeD = '3d',
-  Vector = 'vector',
+  RASTER = 'raster',
+  THREED = '3d',
 }
 
 export enum Tasks {
-  Orm = 'orm',
-  GraphQl = 'graphQl',
+  ORM = 'orm',
+  GRAPHQL = 'graphQl',
 }

@@ -16,7 +16,7 @@ const generateORM = async (targetFilePath: string, ormCatalog: IOrmCatalog): Pro
     name: 'Entity',
     arguments: [`{name: '${ormEntity.table}'}`],
   });
-  const importDeclaration = targetFile.addImportDeclaration({
+  targetFile.addImportDeclaration({
     namedImports: ['Column', 'Entity', 'Index', 'PrimaryColumn'],
     moduleSpecifier: 'typeorm',
   });
@@ -42,10 +42,10 @@ const generateORM = async (targetFilePath: string, ormCatalog: IOrmCatalog): Pro
 
 const objectToString = (column: IColumnProps): string => {
   const dataParts: string[] = ['{'];
-  const props = Object.keys(column);
-  props.forEach((key, index) => {
-    const value = (column as any)[key];
-    let stringifyKey = `${key}: '${value}'`;
+  const props = Object.entries(column);
+  props.forEach((pair: string[], index: number) => {
+    const value: string = pair[1];
+    let stringifyKey = `${pair[0]}: '${value}'`;
     if (index !== props.length - 1) {
       stringifyKey += ',';
     }
@@ -57,8 +57,8 @@ const objectToString = (column: IColumnProps): string => {
   return data;
 };
 
-const generateORMRaster = async (output: string) => {
+const generateORMRaster = async (output: string): Promise<void> => {
   await generateORM(output, new LayerMetadataORM());
 };
 
-Generator.register(Projects.Raster, Tasks.Orm, generateORMRaster);
+Generator.register(Projects.RASTER, Tasks.ORM, generateORMRaster);

@@ -1,24 +1,21 @@
 import { ArgumentParser } from 'argparse';
-import { version, name } from '../package.json';
+import { version } from '../package.json';
 import { Projects, Tasks } from './models/enums';
 import Generator from './dictionary';
 import './loader';
 
-const parser = new ArgumentParser({
-  description: 'Argparse example',
-  add_help: false,
-});
+const parser: ArgumentParser = new ArgumentParser();
 parser.add_argument('-v', '--version', { action: 'version', version });
 parser.add_argument('-tf', '--targetFile');
 parser.add_argument('-p', '--project');
 parser.add_argument('-gt', '--generateTask');
-const args = parser.parse_args();
+const args: string[] = parser.parse_args() as string[];
 
-const targetFilePath: string = args['targetFile'];
-const projectName: Projects = args['project'];
-const generateTask: Tasks = args['generateTask'];
+const targetFilePath: string = args['targetFile'] as string;
+const projectName: Projects = args['project'] as Projects;
+const generateTask: Tasks = args['generateTask'] as Tasks;
 
-const main = async () => {
+const main = async (): Promise<void> => {
   try {
     await Generator.runOrDie(projectName, generateTask, targetFilePath);
   } catch (error) {
@@ -26,4 +23,5 @@ const main = async () => {
     process.exit(1);
   }
 };
-main();
+
+void main();
