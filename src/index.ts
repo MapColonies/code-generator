@@ -1,7 +1,7 @@
 import { ArgumentParser } from 'argparse';
 import { version } from '../package.json';
 import { Projects, Tasks } from './models/enums';
-import Generator from './generate';
+import Generator from './generator';
 import './loader';
 
 const parser: ArgumentParser = new ArgumentParser();

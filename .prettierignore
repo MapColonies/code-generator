@@ -10,3 +10,7 @@ tsbuildconfig.json
 tsconfig.json
 coverage
 reports
+
+tests
+ data
+ expected.ts

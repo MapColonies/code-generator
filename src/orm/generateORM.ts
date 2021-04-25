@@ -1,9 +1,10 @@
-import { IColumnProps, IOrmCatalog, LayerMetadataORM } from '@map-colonies/mc-model-types';
+import { IColumnProps, IOrmCatalog, PycswLayerCatalogRecord } from '@map-colonies/mc-model-types';
 import { Project, Scope } from 'ts-morph';
-import Generator from '../generate';
+import Generator from '../generator';
 import { Projects, Tasks } from '../models/enums';
 
-const generateORM = async (targetFilePath: string, ormCatalog: IOrmCatalog): Promise<void> => {
+// eslint-disable-next-line import/exports-last
+export const generateORM = async (targetFilePath: string, ormCatalog: IOrmCatalog): Promise<void> => {
   const dbFields = ormCatalog.getORMCatalogMappings();
   const ormEntity = ormCatalog.getORMCatalogEntityMappings();
   const project = new Project();
@@ -25,8 +26,8 @@ const generateORM = async (targetFilePath: string, ormCatalog: IOrmCatalog): Pro
     classDeclaration.addProperty({
       scope: Scope.Public,
       name: field.prop,
-      type: field.mappingType,
-      hasExclamationToken: !field.column.nullable,
+      type: field.field?.overrideType !== undefined ? field.field.overrideType : field.mappingType,
+      hasExclamationToken: field.column.nullable !== undefined ? true : false,
       hasQuestionToken: field.column.nullable,
       decorators: [
         {
@@ -40,7 +41,8 @@ const generateORM = async (targetFilePath: string, ormCatalog: IOrmCatalog): Pro
   await targetFile.save();
 };
 
-const objectToString = (column: IColumnProps): string => {
+// eslint-disable-next-line import/exports-last
+export const objectToString = (column: IColumnProps): string => {
   const dataParts: string[] = ['{'];
   const props = Object.entries(column);
   props.forEach((pair: string[], index: number) => {
@@ -58,7 +60,7 @@ const objectToString = (column: IColumnProps): string => {
 };
 
 const generateORMRaster = async (output: string): Promise<void> => {
-  await generateORM(output, new LayerMetadataORM());
+  await generateORM(output, new PycswLayerCatalogRecord());
 };
 
 Generator.register(Projects.RASTER, Tasks.ORM, generateORMRaster);

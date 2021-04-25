@@ -34,6 +34,7 @@ class Generator {
     if (this.dict[project]?.[task] === undefined) {
       throw new Error(`${project} - ${task} is not implemented or registered`);
     }
+
     await this.dict[project]?.[task]?.(target);
   }
 }
