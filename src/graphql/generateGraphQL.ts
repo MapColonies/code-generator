@@ -82,6 +82,7 @@ const createNewScalarType = (name: string, targetFile: SourceFile): void => {
   });
 };
 
+/* eslint-disable @typescript-eslint/naming-convention, no-case-declarations */
 const parseOptions = (field: IPropGraphQLMapping, targetFile: SourceFile): string[] => {
   const args: string[] = [];
   let returnType = '';
@@ -108,6 +109,9 @@ const parseOptions = (field: IPropGraphQLMapping, targetFile: SourceFile): strin
       returnType = `(type) => ${field.prop}Object`;
       createNewScalarType(field.prop, targetFile);
       break;
+
+    case PropertiesTypes.PRIMITIVE:
+      break;
   }
 
   if (returnType) {
@@ -116,6 +120,7 @@ const parseOptions = (field: IPropGraphQLMapping, targetFile: SourceFile): strin
   args.push(`{ nullable: ${Boolean(field.nullable).toString()} }`);
   return args;
 };
+/* eslint-enable @typescript-eslint/naming-convention */
 
 const importEnums = (targetFile: SourceFile): void => {
   for (const key of Object.keys(allImports)) {
