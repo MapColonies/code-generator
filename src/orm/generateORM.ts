@@ -26,7 +26,7 @@ export const generateORM = async (targetFilePath: string, ormCatalog: IOrmCatalo
     classDeclaration.addProperty({
       scope: Scope.Public,
       name: field.prop,
-      type: field.field?.overrideType !== undefined ? field.field.overrideType : field.mappingType,
+      type: field.field?.overrideType !== undefined ? field.field.overrideType.value : field.mappingType.value,
       hasExclamationToken: field.column.nullable !== undefined ? true : false,
       hasQuestionToken: field.column.nullable,
       decorators: [
