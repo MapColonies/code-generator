@@ -46,8 +46,8 @@ export const objectToString = (column: IColumnProps): string => {
   const dataParts: string[] = ['{'];
   const props = Object.entries(column);
   props.forEach((pair: string[], index: number) => {
-    const value: string = pair[1];
-    let stringifyKey = `${pair[0]}: '${value}'`;
+    const value: string = typeof pair[1] === 'string' ? `'${pair[1]}'` : pair[1];
+    let stringifyKey = `${pair[0]}: ${value}`;
     if (index !== props.length - 1) {
       stringifyKey += ',';
     }

@@ -2,7 +2,7 @@ import { pycsw } from '@map-colonies/mc-model-types/Schema/models/layerMetadata/
 import { catalogDB, getCatalogDBMapping } from '@map-colonies/mc-model-types/Schema/models/layerMetadata/decorators/property/catalogDB.decorator';
 import { getTsTypesMapping, tsTypes, TsTypes } from '@map-colonies/mc-model-types/Schema/models/layerMetadata/decorators/property/tsTypes.decorator';
 import { IOrmCatalog } from '@map-colonies/mc-model-types';
-import { IPropCatalogDBMapping } from '@map-colonies/mc-model-types/Schema/models/common/interfaces/IPropCatalogDBMapping';
+import { IPropCatalogDBMapping } from '@map-colonies/mc-model-types/Schema/models/common/interfaces/propCatalogDBMapping.interface';
 import {
   catalogDBEntity,
   getCatalogDBEntityMapping,
