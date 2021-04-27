@@ -110,7 +110,7 @@ describe('objectToString', function () {
   it('should successfuly convert column properties object to string', () => {
     // mock
     const decoratorAttr: IColumnProps = {name: "name", type: "text", nullable: true};
-    const expectedResult = `{name: 'name',type: 'text',nullable: ${true}}`;
+    const expectedResult = `{name: 'name',type: 'text',nullable: true}`;
 
     // action
     const result: string = generate.objectToString(decoratorAttr);
