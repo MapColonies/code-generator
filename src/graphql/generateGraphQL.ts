@@ -122,7 +122,7 @@ const importEnums = (targetFile: SourceFile): void => {
     targetFile.addImportDeclaration({ namedImports: allImports[key], moduleSpecifier: key });
 
     for (const module of allImports[key] as string[]) {
-      const registerEnums = `registerEnumType(${module}, {name: "${module}"});`;
+      const registerEnums = `registerEnumType(${module}, {name: "${module}"})`;
       targetFile.addVariableStatement({
         declarationKind: VariableDeclarationKind.Const,
         declarations: [
