@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { ArgumentParser } from 'argparse';
 import { version } from '../package.json';
 import { Projects, Tasks } from './models/enums';
