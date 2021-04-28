@@ -67,7 +67,7 @@
     "ts-morph": "^10.0.2"
   },
   "peerDependencies": {
-    "@map-colonies/mc-model-types": ">=4.1.0"
+    "@map-colonies/mc-model-types": ">=4.0.0"
   },
   "bin": {
     "code-generator": "./dist/src/index.js"

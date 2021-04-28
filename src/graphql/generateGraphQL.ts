@@ -79,7 +79,7 @@ const createNewScalarType = (name: string, targetFile: SourceFile): void => {
       declarations: [
         {
           name: scalarName,
-          initializer: `new GraphQLScalarType({ name: "${name}Object"})`,
+          initializer: `new GraphQLScalarType({ name: "${scalarName}"})`,
         },
       ],
       isExported: true,
