@@ -3,12 +3,11 @@ import { SourceFile, Project, ClassDeclaration } from 'ts-morph';
 import { IColumnProps } from '@map-colonies/mc-model-types'
 import * as generate from '../../src/orm/generateORM';
 import { generateORM } from '../../src/orm/generateORM';
-import { fields, entity } from '../data/mock';
-import { Source } from '../data/source';
+import { fields, Source } from '../data/ORM/mocks';
 
 describe('generateORM', function () {
-  const targetFilePath = 'tests/data/output.ts';
-  const expectedFilePath = 'tests/data/expected.ts';
+  const targetFilePath = 'tests/data/ORM//output.ts';
+  const expectedFilePath = 'tests/data/ORM/expected.ts';
   let getORMCatalogMappingsSpy: jest.SpyInstance;
   let getORMCatalogEntityMappingsSpy: jest.SpyInstance;
   let createSourceFileSpy: jest.SpyInstance;
@@ -29,9 +28,6 @@ describe('generateORM', function () {
     addImportDeclarationSpy = jest.spyOn(SourceFile.prototype, 'addImportDeclaration');
     addPropertySpy = jest.spyOn(ClassDeclaration.prototype, 'addProperty');
     objectToStringSpy = jest.spyOn(generate, 'objectToString');
-
-    getORMCatalogMappingsSpy.mockReturnValue(fields);
-    getORMCatalogEntityMappingsSpy.mockReturnValue(entity);
   });
 
   afterEach(() => {
