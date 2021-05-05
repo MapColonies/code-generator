@@ -1,6 +1,7 @@
 import { IOrmCatalog, PropertiesTypes } from '@map-colonies/mc-model-types';
 import { IPropCatalogDBMapping } from '@map-colonies/mc-model-types/Schema/models/common/interfaces/propCatalogDBMapping.interface';
 import { ICatalogDBEntityMapping } from '@map-colonies/mc-model-types/Schema/models/layerMetadata/decorators/class/catalogDBEntity.decorator';
+
 export const fields: IPropCatalogDBMapping[] = [
   {
     prop: 'id',

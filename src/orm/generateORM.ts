@@ -2,6 +2,7 @@ import { IColumnProps, IOrmCatalog, PycswLayerCatalogRecord } from '@map-colonie
 import { Project, Scope } from 'ts-morph';
 import Generator from '../generator';
 import { Projects, Tasks } from '../models/enums';
+import * as utils from '../utils';
 
 // eslint-disable-next-line import/exports-last
 export const generateORM = async (targetFilePath: string, ormCatalog: IOrmCatalog): Promise<void> => {
@@ -9,6 +10,7 @@ export const generateORM = async (targetFilePath: string, ormCatalog: IOrmCatalo
   const ormEntity = ormCatalog.getORMCatalogEntityMappings();
   const project = new Project();
   const targetFile = project.createSourceFile(targetFilePath, {}, { overwrite: true });
+  utils.generateTopComments(targetFile);
   const classDeclaration = targetFile.addClass({
     name: 'Metadata',
     isExported: true,

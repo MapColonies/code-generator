@@ -1,7 +1,7 @@
 import '../../src/graphql/generateGraphQL';
-import Generator from '../../src/generator';
-import { Project, SourceFile } from 'ts-morph';
 import { promises } from 'fs';
+import { Project, SourceFile } from 'ts-morph';
+import Generator from '../../src/generator';
 
 describe('generateGraphQL', function () {
     const targetFilePath = 'tests/data/ORM//output.ts';
@@ -32,7 +32,7 @@ describe('generateGraphQL', function () {
             outputFileContent = this.getFullText();
             return Promise.resolve();
         });
-        dict.raster.graphQl(targetFilePath);
+        await dict.raster.graphQl(targetFilePath);
         const expectedFileContent = await promises.readFile(expectedFilePath, { encoding: 'utf8' });
 
         expect(saveSpy).toHaveBeenCalledTimes(1);
