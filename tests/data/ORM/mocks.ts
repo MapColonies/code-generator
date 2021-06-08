@@ -18,6 +18,7 @@ export const fields: IPropCatalogDBMapping[] = [
 
 export const entity: ICatalogDBEntityMapping = {
   table: 'records',
+  className: 'Metadata'
 };
 
 export class Source implements IOrmCatalog {

@@ -1,8 +1,7 @@
 import { promises } from 'fs';
 import { SourceFile, Project, ClassDeclaration } from 'ts-morph';
 import { IColumnProps } from '@map-colonies/mc-model-types'
-import * as generate from '../../src/orm/generateORM';
-import { generateORM } from '../../src/orm/generateORM';
+import { OrmGenerator } from '../../src/orm/generateORM';
 import { fields, Source } from '../data/ORM/mocks';
 
 describe('generateORM', function () {
@@ -18,7 +17,10 @@ describe('generateORM', function () {
   let objectToStringSpy: jest.SpyInstance;
   let saveSpy: jest.SpyInstance;
 
+  let generator: OrmGenerator;
+
   beforeEach(() => {
+    generator = new OrmGenerator(targetFilePath,new Source());
     // spy functions
     getORMCatalogMappingsSpy = jest.spyOn(Source.prototype, 'getORMCatalogMappings');
     getORMCatalogEntityMappingsSpy = jest.spyOn(Source.prototype, 'getORMCatalogEntityMappings');
@@ -27,7 +29,8 @@ describe('generateORM', function () {
     addDecoratorSpy = jest.spyOn(ClassDeclaration.prototype, 'addDecorator');
     addImportDeclarationSpy = jest.spyOn(SourceFile.prototype, 'addImportDeclaration');
     addPropertySpy = jest.spyOn(ClassDeclaration.prototype, 'addProperty');
-    objectToStringSpy = jest.spyOn(generate, 'objectToString');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    objectToStringSpy = jest.spyOn<any,any>(generator,'objectToString');
   });
 
   afterEach(() => {
@@ -42,7 +45,7 @@ describe('generateORM', function () {
     });
 
     // action
-    await generateORM(targetFilePath, new Source());
+    await generator.generate();
 
     // expect
     expect(getORMCatalogMappingsSpy).toHaveBeenCalledTimes(1);
@@ -53,7 +56,7 @@ describe('generateORM', function () {
     expect(addImportDeclarationSpy).toHaveBeenCalledTimes(1);
     expect(addPropertySpy).toHaveBeenCalledTimes(fields.length);
     expect(saveSpy).toHaveBeenCalledTimes(1);
-    expect(objectToStringSpy).toHaveBeenCalledTimes(fields.length + 1);
+    expect(objectToStringSpy).toHaveBeenCalledTimes(fields.length);
   });
 
   it('should create the ORM class equal to the expected class', async () => {
@@ -67,7 +70,7 @@ describe('generateORM', function () {
 
     // action
     const expectedFileContent = await promises.readFile(expectedFilePath, { encoding: 'utf8' });
-    await generateORM(targetFilePath, new Source());
+    await generator.generate();
 
     // expect
     expect(outputFileContent).toEqual(expectedFileContent);
@@ -79,7 +82,7 @@ describe('generateORM', function () {
 
     // action
     const action = async (): Promise<void> => {
-      await generateORM(targetFilePath, new Source());
+      await generator.generate();
     };
 
     // expect
@@ -90,11 +93,12 @@ describe('generateORM', function () {
 });
 
 describe('objectToString', function () {
-  let objectToStringSpy: jest.SpyInstance;
+  const targetFilePath = 'tests/data/ORM//output.ts';
+  let generator: OrmGenerator;
 
   beforeEach(() => {
+    generator = new OrmGenerator(targetFilePath,new Source());
     // spy functions
-    objectToStringSpy = jest.spyOn(generate, 'objectToString');
 
   });
 
@@ -109,11 +113,11 @@ describe('objectToString', function () {
     const expectedResult = `{name: 'name',type: 'text',nullable: true}`;
 
     // action
-    const result: string = generate.objectToString(decoratorAttr);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-explicit-any
+    const result: string = (generator as any).objectToString(decoratorAttr);
 
     // expect
     expect(typeof result).toBe('string');
-    expect(objectToStringSpy).toHaveBeenCalledTimes(1);
     expect(result).toEqual(expectedResult);
   });
 });
