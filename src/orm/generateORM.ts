@@ -22,13 +22,12 @@ export class OrmGenerator {
     this.importManager = new ImportManager();
   }
 
-  // eslint-disable-next-line import/exports-last
   public async generate(): Promise<void> {
     this.initGeneratedFile();
 
     const ormEntity = this.entity.getORMCatalogEntityMappings();
 
-    this.importManager.addImport('typeorm', ['Column', 'Entity', 'Index', 'PrimaryColumn']);
+    this.importManager.addImport('typeorm', ['Column', 'Entity']);
     const classDeclaration = this.createClass(ormEntity);
     this.addProperties(classDeclaration);
 
@@ -40,10 +39,12 @@ export class OrmGenerator {
   private addProperties(classDeclaration: ClassDeclaration): void {
     const dbFields = this.entity.getORMCatalogMappings();
     dbFields.forEach((field) => {
+      const type = field.field?.overrideType !== undefined ? field.field.overrideType : field.mappingType;
+      this.importManager.addType(type);
       classDeclaration.addProperty({
         scope: Scope.Public,
         name: field.prop,
-        type: field.field?.overrideType !== undefined ? field.field.overrideType.value : field.mappingType.value,
+        type: type.value,
         hasExclamationToken: field.column.nullable !== undefined ? true : false,
         hasQuestionToken: field.column.nullable,
         decorators: [
@@ -58,7 +59,7 @@ export class OrmGenerator {
 
   private createClass(ormEntity: ICatalogDBEntityMapping): ClassDeclaration {
     const classDeclaration = this.targetFile.addClass({
-      name: 'Metadata',
+      name: ormEntity.className,
       isExported: true,
     });
     classDeclaration.addDecorator({
@@ -74,7 +75,6 @@ export class OrmGenerator {
     this.targetFile.insertStatements(0, AUTO_GENERATED_COMMENT + '\n' + DISABLE_LINT_RULES);
   }
 
-  // eslint-disable-next-line import/exports-last
   private objectToString(column: IColumnProps): string {
     const dataParts: string[] = ['{'];
     const props = Object.entries(column);
