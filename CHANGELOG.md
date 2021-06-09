@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/MapColonies/code-generator/compare/v1.1.0...v1.2.0) (2021-06-09)
+
+
+### Features
+
+* finished orm code generator ([#8](https://github.com/MapColonies/code-generator/issues/8)) ([d6f19d7](https://github.com/MapColonies/code-generator/commit/d6f19d7ed0bd5b7fc8b3e40b7266bd8845d29716))
+
 ## 1.1.0 (2021-05-05)
 
 
