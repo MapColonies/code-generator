@@ -66,7 +66,7 @@ const generateGraphQL = async (targetFilePath: string): Promise<void> => {
 };
 
 const getType = (mappingType: IDescribeTsType): string => {
-  if (mappingType.type === PropertiesTypes.ARRAY) {
+  if (mappingType.type === PropertiesTypes.ARRAY || mappingType.type === PropertiesTypes.ENUM_ARRAY) {
     return `${mappingType.value}[]`;
   }
   if (mappingType.type === PropertiesTypes.OBJECT) {
@@ -101,8 +101,13 @@ const parseOptions = (field: IPropGraphQLMapping, targetFile: SourceFile): strin
 
   switch (field.mappingType.type) {
     case PropertiesTypes.ENUM:
-      returnType = `(type) => ${field.mappingType.value}`;
       importManager.addType(field.mappingType);
+      returnType = `(type) => ${field.mappingType.value}`;
+      break;
+
+    case PropertiesTypes.ENUM_ARRAY:
+      importManager.addType(field.mappingType);
+      returnType = `(type) => [${field.mappingType.value}]`;
       break;
 
     case PropertiesTypes.CLASS:
