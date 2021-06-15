@@ -12,6 +12,8 @@ export class MockLayer {
     public id?: string;
     @Field((type) => mockEnum, { nullable: true })
     public mockEnum?: mockEnum;
+    @Field((type) => [mockEnum], { nullable: true })
+    public mockEnumArray?: mockEnum[];
     @Field((type) => mockScalarObject, { nullable: true })
     public mockScalar?: Record<string, unknown>;
     @Field((type) => [String], { nullable: true })

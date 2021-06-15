@@ -31,6 +31,15 @@ export const getGraphQLClassMapping = (): IGraphQLClassMapping[] => {
           },
         },
         {
+          prop: 'mockEnumArray',
+          nullable: true,
+          mappingType: {
+            value: 'mockEnum',
+            type: PropertiesTypes.ENUM_ARRAY,
+            importFromPackage: 'mockPackage'
+          },
+        },
+        {
           prop: 'mockScalar',
           nullable: true,
           mappingType: {
