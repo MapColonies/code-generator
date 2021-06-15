@@ -53,7 +53,7 @@ describe('generateORM', function () {
     expect(createSourceFileSpy).toHaveBeenCalledTimes(1);
     expect(addClassSpy).toHaveBeenCalledTimes(1);
     expect(addDecoratorSpy).toHaveBeenCalledTimes(1);
-    expect(addImportDeclarationSpy).toHaveBeenCalledTimes(1);
+    expect(addImportDeclarationSpy).toHaveBeenCalledTimes(2);
     expect(addPropertySpy).toHaveBeenCalledTimes(fields.length);
     expect(saveSpy).toHaveBeenCalledTimes(1);
     expect(objectToStringSpy).toHaveBeenCalledTimes(fields.length);
