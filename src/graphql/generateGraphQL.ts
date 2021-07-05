@@ -1,4 +1,4 @@
-import { IPropGraphQLMapping, getGraphQLClassMapping, IGraphQLClassMapping, IDescribeTsType, PropertiesTypes } from '@map-colonies/mc-model-types';
+import { IPropGraphQLMapping, getGraphQLClassMapping, IDescribeTsType, PropertiesTypes } from '@map-colonies/mc-model-types';
 import { Project, Scope, SourceFile, VariableDeclarationKind } from 'ts-morph';
 import Generator from '../generator';
 import { Projects, Tasks } from '../models/enums';
@@ -11,7 +11,7 @@ let importManager: ImportManager;
 
 const generateGraphQL = async (targetFilePath: string): Promise<void> => {
   importManager = new ImportManager();
-  const graphQLClasses = getGraphQLClassMapping() as IGraphQLClassMapping[];
+  const graphQLClasses = getGraphQLClassMapping();
   const project = new Project();
   const targetFile = project.createSourceFile(targetFilePath, {}, { overwrite: true });
   targetFile.insertStatements(0, AUTO_GENERATED_COMMENT + '\n' + DISABLE_LINT_RULES);
