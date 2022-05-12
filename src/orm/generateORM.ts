@@ -1,4 +1,4 @@
-import { PropertiesTypes, IOrmCatalog, PycswLayerCatalogRecord, ICatalogDBEntityMapping } from '@map-colonies/mc-model-types';
+import { PropertiesTypes, IOrmCatalog, PycswLayerCatalogRecord, Pycsw3DCatalogRecord, ICatalogDBEntityMapping } from '@map-colonies/mc-model-types';
 import { ClassDeclaration, Project, Scope, SourceFile } from 'ts-morph';
 import Generator from '../generator';
 import { Projects, Tasks } from '../models/enums';
@@ -12,6 +12,12 @@ const generateORMRaster = async (output: string): Promise<void> => {
   await generator.generate();
 };
 Generator.register(Projects.RASTER, Tasks.ORM, generateORMRaster);
+
+const generateORM3D = async (output: string): Promise<void> => {
+  const generator = new OrmGenerator(output, new Pycsw3DCatalogRecord());
+  await generator.generate();
+};
+Generator.register(Projects.THREED, Tasks.ORM, generateORM3D);
 
 export class OrmGenerator {
   private readonly importManager: ImportManager;
