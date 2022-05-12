@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/MapColonies/code-generator/compare/v1.3.1...v1.4.0) (2022-05-12)
+
+
+### Features
+
+* add 3d generator and updates mc package ([#11](https://github.com/MapColonies/code-generator/issues/11)) ([6586144](https://github.com/MapColonies/code-generator/commit/6586144d715e3278c0aa6ac0db10b648503cecd8))
+
 ### [1.3.1](https://github.com/MapColonies/code-generator/compare/v1.3.0...v1.3.1) (2021-07-05)
 
 ### [1.2.1](https://github.com/MapColonies/code-generator/compare/v1.2.0...v1.2.1) (2021-06-15)
