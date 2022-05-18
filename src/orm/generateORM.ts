@@ -1,5 +1,11 @@
-import { PropertiesTypes, IOrmCatalog, PycswLayerCatalogRecord, Pycsw3DCatalogRecord, ICatalogDBEntityMapping } from '@map-colonies/mc-model-types';
-import { SpecialORMColumnType } from '@map-colonies/mc-model-types/Schema/models/layerMetadata/decorators/property/catalogDB.decorator';
+import {
+  PropertiesTypes,
+  IOrmCatalog,
+  PycswLayerCatalogRecord,
+  Pycsw3DCatalogRecord,
+  ICatalogDBEntityMapping,
+  SpecialORMColumnType,
+} from '@map-colonies/mc-model-types';
 import { ClassDeclaration, Project, Scope, SourceFile } from 'ts-morph';
 import Generator from '../generator';
 import { Projects, Tasks } from '../models/enums';

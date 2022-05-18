@@ -1,7 +1,6 @@
-import { IOrmCatalog, PropertiesTypes } from '@map-colonies/mc-model-types';
+import { IOrmCatalog, PropertiesTypes, SpecialORMColumnType }  from '@map-colonies/mc-model-types';
 import { IPropCatalogDBMapping } from '@map-colonies/mc-model-types/Schema/models/common/interfaces/propCatalogDBMapping.interface';
 import { ICatalogDBEntityMapping } from '@map-colonies/mc-model-types/Schema/models/layerMetadata/decorators/class/catalogDBEntity.decorator';
-import { SpecialORMColumnType } from '@map-colonies/mc-model-types/Schema/models/layerMetadata/decorators/property/catalogDB.decorator';
 
 
 export const fields: IPropCatalogDBMapping[] = [
