@@ -1,5 +1,11 @@
-import { PropertiesTypes, IOrmCatalog, PycswLayerCatalogRecord, Pycsw3DCatalogRecord, ICatalogDBEntityMapping } from '@map-colonies/mc-model-types';
-import { SpecialORMColumnType } from '@map-colonies/mc-model-types/Schema/models/layerMetadata/decorators/property/catalogDB.decorator';
+import {
+  PropertiesTypes,
+  ORMColumnType,
+  IOrmCatalog,
+  PycswLayerCatalogRecord,
+  Pycsw3DCatalogRecord,
+  ICatalogDBEntityMapping,
+} from '@map-colonies/mc-model-types';
 import { ClassDeclaration, Project, Scope, SourceFile } from 'ts-morph';
 import Generator from '../generator';
 import { Projects, Tasks } from '../models/enums';
@@ -60,24 +66,10 @@ export class OrmGenerator {
         }
         hasExclamationToken = false;
       }
-      let decorators;
-      if (field.columnType !== undefined) {
-        const name = SpecialORMColumnType[field.columnType];
-        this.importManager.addImport('typeorm', [name]);
-        decorators = [
-          {
-            name: name,
-            arguments: [this.objectToString(field.column as unknown as Record<string, unknown>)],
-          },
-        ];
-      } else {
-        decorators = [
-          {
-            name: 'Column',
-            arguments: [this.objectToString(field.column as unknown as Record<string, unknown>)],
-          },
-        ];
-      }
+
+      const columnDecoratorName = field.columnType ?? ORMColumnType.COLUMN;
+      this.importManager.addImport('typeorm', [columnDecoratorName]);
+
       classDeclaration.addProperty({
         scope: Scope.Public,
         name: field.prop,
@@ -85,7 +77,12 @@ export class OrmGenerator {
         initializer: initializer,
         hasExclamationToken: hasExclamationToken,
         hasQuestionToken: field.column.nullable,
-        decorators: decorators,
+        decorators: [
+          {
+            name: columnDecoratorName,
+            arguments: [this.objectToString(field.column as unknown as Record<string, unknown>)],
+          },
+        ],
       });
     });
   }

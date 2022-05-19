@@ -1,7 +1,7 @@
 import { IOrmCatalog, PropertiesTypes } from '@map-colonies/mc-model-types';
 import { IPropCatalogDBMapping } from '@map-colonies/mc-model-types/Schema/models/common/interfaces/propCatalogDBMapping.interface';
 import { ICatalogDBEntityMapping } from '@map-colonies/mc-model-types/Schema/models/layerMetadata/decorators/class/catalogDBEntity.decorator';
-import { SpecialORMColumnType } from '@map-colonies/mc-model-types/Schema/models/layerMetadata/decorators/property/catalogDB.decorator';
+import { ORMColumnType } from '@map-colonies/mc-model-types';
 
 
 export const fields: IPropCatalogDBMapping[] = [
@@ -33,7 +33,7 @@ export const fields: IPropCatalogDBMapping[] = [
   },
   {
     prop: 'updateDate',
-    columnType: SpecialORMColumnType.UpdateDateColumn,
+    columnType: ORMColumnType.UPDATE_DATE_COLUMN,
     column: { name: 'update_date', type: 'timestamp without time zone', nullable: true },
     mappingType: { value: 'Date', type: PropertiesTypes.PRIMITIVE },
   },
