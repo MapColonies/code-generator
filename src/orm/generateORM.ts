@@ -1,4 +1,11 @@
-import { PropertiesTypes, IOrmCatalog, PycswLayerCatalogRecord, Pycsw3DCatalogRecord, ICatalogDBEntityMapping } from '@map-colonies/mc-model-types';
+import {
+  PropertiesTypes,
+  ORMColumnType,
+  IOrmCatalog,
+  PycswLayerCatalogRecord,
+  Pycsw3DCatalogRecord,
+  ICatalogDBEntityMapping,
+} from '@map-colonies/mc-model-types';
 import { ClassDeclaration, Project, Scope, SourceFile } from 'ts-morph';
 import Generator from '../generator';
 import { Projects, Tasks } from '../models/enums';
@@ -59,6 +66,10 @@ export class OrmGenerator {
         }
         hasExclamationToken = false;
       }
+
+      const columnDecoratorName = field.columnType ?? ORMColumnType.COLUMN;
+      this.importManager.addImport('typeorm', [columnDecoratorName]);
+
       classDeclaration.addProperty({
         scope: Scope.Public,
         name: field.prop,
@@ -68,7 +79,7 @@ export class OrmGenerator {
         hasQuestionToken: field.column.nullable,
         decorators: [
           {
-            name: 'Column',
+            name: columnDecoratorName,
             arguments: [this.objectToString(field.column as unknown as Record<string, unknown>)],
           },
         ],
