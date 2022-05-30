@@ -1,6 +1,6 @@
 {
   "name": "@map-colonies/code-generator",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "This is template for map colonies typescript packages",
   "main": "./dist/src/index.js",
   "scripts": {
@@ -45,7 +45,7 @@
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-conventional": "^11.0.0",
     "@map-colonies/eslint-config": "^2.2.0",
-    "@map-colonies/mc-model-types": "^11.0.1",
+    "@map-colonies/mc-model-types": "^11.2.0",
     "@map-colonies/prettier-config": "0.0.1",
     "@types/argparse": "^2.0.5",
     "@types/jest": "^26.0.19",
@@ -62,7 +62,7 @@
     "standard-version": "^9.0.0",
     "ts-jest": "^26.4.4",
     "ts-node": "^9.1.1",
-    "typescript": "^3.8.3"
+    "typescript": "^4.6.4"
   },
   "dependencies": {
     "argparse": "^2.0.1",
