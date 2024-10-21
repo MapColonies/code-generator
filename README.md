@@ -20,7 +20,7 @@ in your project package.json add script for generate:
 
 ## parameters
 * -p --project    - name of the project, available values:
- raster, 3d. (no default)
+ raster, 3d, polygonParts. (no default)
 
  * -tf --targetFile  - path to the generated file, override file if  exists. (no default)
 

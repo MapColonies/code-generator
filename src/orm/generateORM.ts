@@ -4,6 +4,7 @@ import {
   IOrmCatalog,
   PycswLayerCatalogRecord,
   Pycsw3DCatalogRecord,
+  PolygonPartRecord,
   ICatalogDBEntityMapping,
 } from '@map-colonies/mc-model-types';
 import { ClassDeclaration, Project, Scope, SourceFile } from 'ts-morph';
@@ -26,6 +27,12 @@ const generateORM3D = async (output: string): Promise<void> => {
 };
 Generator.register(Projects.THREED, Tasks.ORM, generateORM3D);
 
+const generateORMPolygonPart = async (output: string): Promise<void> => {
+  const generator = new OrmGenerator(output, new PolygonPartRecord());
+  await generator.generate();
+};
+Generator.register(Projects.POLYGON_PARTS, Tasks.ORM, generateORMPolygonPart);
+
 export class OrmGenerator {
   private readonly importManager: ImportManager;
   private project!: Project;
@@ -40,6 +47,7 @@ export class OrmGenerator {
 
     const ormEntity = this.entity.getORMCatalogEntityMappings();
 
+    console.log('ormEntity', ormEntity);
     this.importManager.addImport('typeorm', ['Column', 'Entity']);
     const classDeclaration = this.createClass(ormEntity);
     this.addProperties(classDeclaration);
@@ -49,10 +57,13 @@ export class OrmGenerator {
     await this.targetFile.save();
   }
 
+  //add column decorator
   private addProperties(classDeclaration: ClassDeclaration): void {
     const dbFields = this.entity.getORMCatalogMappings();
+    console.log('dbFields', dbFields);
     dbFields.forEach((field) => {
       const type = field.field?.overrideType !== undefined ? field.field.overrideType : field.mappingType;
+      console.log('type   >>>   overrideType | mappingType:  ', type, '   >>>   ', field.field);
       this.importManager.addType(type);
       let typeName = type.value;
       if (type.type == PropertiesTypes.ARRAY || type.type == PropertiesTypes.ENUM_ARRAY) {
@@ -67,9 +78,10 @@ export class OrmGenerator {
         hasExclamationToken = false;
       }
 
-      const columnDecoratorName = field.columnType ?? ORMColumnType.COLUMN;
+      const columnDecoratorName = field.column.columnType ?? ORMColumnType.COLUMN;
       this.importManager.addImport('typeorm', [columnDecoratorName]);
 
+      const { columnType, ...rest } = field.column as unknown as Record<string, unknown>;
       classDeclaration.addProperty({
         scope: Scope.Public,
         name: field.prop,
@@ -80,7 +92,7 @@ export class OrmGenerator {
         decorators: [
           {
             name: columnDecoratorName,
-            arguments: [this.objectToString(field.column as unknown as Record<string, unknown>)],
+            arguments: [this.objectToString(rest)],
           },
         ],
       });

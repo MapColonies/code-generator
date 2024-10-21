@@ -32,8 +32,7 @@ export const fields: IPropCatalogDBMapping[] = [
   },
   {
     prop: 'updateDate',
-    columnType: ORMColumnType.UPDATE_DATE_COLUMN,
-    column: { name: 'update_date', type: 'timestamp without time zone', nullable: true },
+    column: { name: 'update_date', type: 'timestamp without time zone', nullable: true, columnType: ORMColumnType.UPDATE_DATE_COLUMN },
     mappingType: { value: 'Date', type: PropertiesTypes.PRIMITIVE },
   },
 ];
