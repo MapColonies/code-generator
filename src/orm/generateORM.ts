@@ -7,7 +7,7 @@ import {
   PolygonPartRecord,
   ICatalogDBEntityMapping,
 } from '@map-colonies/mc-model-types';
-import { ClassDeclaration, Project, Scope, SourceFile } from 'ts-morph';
+import { ClassDeclaration, Project, Scope, SourceFile, VariableDeclarationKind } from 'ts-morph';
 import Generator from '../generator';
 import { Projects, Tasks } from '../models/enums';
 import { ImportManager } from '../utills/importManager';
@@ -48,7 +48,7 @@ export class OrmGenerator {
     const ormEntity = this.entity.getORMCatalogEntityMappings();
 
     console.log('ormEntity', ormEntity);
-    this.importManager.addImport('typeorm', ['Column', 'Entity']);
+    this.importManager.addImport('typeorm', ['Column', 'Entity', 'Polygon']);
     const classDeclaration = this.createClass(ormEntity);
     this.addProperties(classDeclaration);
 
@@ -60,17 +60,17 @@ export class OrmGenerator {
   //add column decorator
   private addProperties(classDeclaration: ClassDeclaration): void {
     const dbFields = this.entity.getORMCatalogMappings();
-    console.log('dbFields', dbFields);
     dbFields.forEach((field) => {
-      const type = field.field?.overrideType !== undefined ? field.field.overrideType : field.mappingType;
-      console.log('type   >>>   overrideType | mappingType:  ', type, '   >>>   ', field.field);
+      const type = field.field?.overrideType != undefined ? field.field.overrideType : field.mappingType;
+
       this.importManager.addType(type);
       let typeName = type.value;
       if (type.type == PropertiesTypes.ARRAY || type.type == PropertiesTypes.ENUM_ARRAY) {
         typeName = `${typeName}[]`;
       }
-      let hasExclamationToken = field.column.nullable !== undefined;
-      let initializer = this.valueToString((this.entity as unknown as Record<string, unknown>)[field.prop]);
+      let hasExclamationToken = !field.column.nullable;
+      let initializer = this.valueToString(['DUMMY', (this.entity as unknown as Record<string, unknown>)[field.prop]]);
+
       if (initializer !== undefined) {
         if (type.type == PropertiesTypes.ENUM) {
           initializer = `${initializer} as ${type.value}`;
@@ -79,23 +79,74 @@ export class OrmGenerator {
       }
 
       const columnDecoratorName = field.column.columnType ?? ORMColumnType.COLUMN;
-      this.importManager.addImport('typeorm', [columnDecoratorName]);
+      this.importManager.addImport('typeorm', [columnDecoratorName, 'Index']);
 
-      const { columnType, ...rest } = field.column as unknown as Record<string, unknown>;
+      const { columnType, enum: { enumName, enumValues, enumType, generateValuesConstName } = {}, ...rest } = field.column;
+
+      let updateRest: Record<string, unknown> = {
+        ...rest,
+        ...(enumName != null ? { enumName } : {}),
+      };
+
+      if (enumValues != null) {
+        if (generateValuesConstName != null) {
+          this.targetFile.insertVariableStatement(2, {
+            isExported: true,
+            declarationKind: VariableDeclarationKind.Const,
+            declarations: [
+              {
+                name: `${generateValuesConstName}`,
+                initializer: JSON.stringify(enumValues),
+              },
+            ],
+          });
+
+          updateRest = {
+            ...updateRest,
+            enum: generateValuesConstName,
+          };
+        } else {
+          updateRest = {
+            ...updateRest,
+            enum: enumValues,
+          };
+        }
+      } else if (enumType != null) {
+        updateRest = {
+          ...rest,
+          enumName,
+          enumType: enumType,
+        };
+        this.importManager.addImport('@map-colonies/mc-model-types', [enumType]);
+      }
+
       classDeclaration.addProperty({
         scope: Scope.Public,
         name: field.prop,
         type: typeName,
+        isReadonly: field.field?.isReadonly,
         initializer: initializer,
         hasExclamationToken: hasExclamationToken,
         hasQuestionToken: field.column.nullable,
+
         decorators: [
           {
             name: columnDecoratorName,
-            arguments: [this.objectToString(rest)],
+            arguments: [this.objectToString(updateRest)],
+          },
+          {
+            name: 'Index',
+            arguments: [this.objectToString({ ...field.index })],
           },
         ],
       });
+
+      const lastProperty = classDeclaration.getProperties().pop();
+      const lastPropertyPos = lastProperty?.getPos();
+
+      if (lastPropertyPos != null) {
+        classDeclaration.insertText(lastPropertyPos, '\n');
+      }
     });
   }
 
@@ -104,6 +155,7 @@ export class OrmGenerator {
       name: ormEntity.className,
       isExported: true,
     });
+
     classDeclaration.addDecorator({
       name: 'Entity',
       arguments: [`{name: '${ormEntity.table}'}`],
@@ -118,16 +170,16 @@ export class OrmGenerator {
   }
 
   private objectToString(column: Record<string, unknown>): string {
-    const dataParts: string[] = ['{'];
+    const dataParts: string[] = ['{ '];
     const props = Object.entries(column);
     props.forEach((pair: [string, unknown], index: number) => {
-      const parsed = this.valueToString(pair[1]);
+      const parsed = this.valueToString(pair);
       const value = parsed !== undefined ? parsed : 'undefined';
       let stringifyKey = `${pair[0]}: ${value}`;
       if (index !== props.length - 1) {
         stringifyKey += ',';
       }
-      dataParts.push(stringifyKey);
+      dataParts.push(stringifyKey + ' ');
     });
     dataParts.push('}');
     const data = dataParts.join('');
@@ -135,16 +187,19 @@ export class OrmGenerator {
     return data;
   }
 
-  private valueToString(value: unknown): string | undefined {
+  private valueToString(pair: [string, unknown]): string | undefined {
+    const value = pair[1];
     switch (typeof value) {
       case 'object':
-        return this.objectToString(value as Record<string, unknown>);
+      // return this.objectToString(value as Record<string, unknown>);
+      case 'object':
+        return !pair[0].includes('enum') ? this.objectToString(value as Record<string, unknown>) : `[${this.mapToStrings(value)}]`;
       case 'bigint':
       case 'boolean':
       case 'number':
         return value.toString();
       case 'string':
-        return `'${value}'`;
+        return pair[0] !== 'enum' ? `'${value}'` : `${value}`;
       case 'undefined':
         return undefined;
       case 'symbol':
@@ -152,4 +207,9 @@ export class OrmGenerator {
         throw new Error(`unsupported value type: ${typeof value}`);
     }
   }
+
+  private mapToStrings = (value: string[] | unknown): string[] => {
+    if (Array.isArray(value)) return value.map((item) => `'${item}'`);
+    return [];
+  };
 }
