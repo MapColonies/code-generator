@@ -70,7 +70,7 @@ describe('objectToString', function () {
       // action
       Generator.register(project, task, resolve);
       const action = async () => { 
-        await Generator.runOrDie(project, task, targetFilePath);
+        await Generator.runOrDie(project, task, targetFilePath, {});
       };
 
       // expect
@@ -92,7 +92,7 @@ describe('objectToString', function () {
       Generator.register(project, task, resolve);
       // trying to run unregistered PROJECT: '3d'
       const action = async () => { 
-        await Generator.runOrDie(unregisteredProject, task, targetFilePath);
+        await Generator.runOrDie(unregisteredProject, task, targetFilePath, {});
       };
 
       // expect
@@ -114,7 +114,7 @@ describe('objectToString', function () {
       Generator.register(project, task, resolve);
       // trying to run unregistered TASK: 'graphql'
       const action = async () => { 
-        await Generator.runOrDie(project, unregisteredTask, targetFilePath);
+        await Generator.runOrDie(project, unregisteredTask, targetFilePath, {});
       };
 
       // expect

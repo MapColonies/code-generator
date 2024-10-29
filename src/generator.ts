@@ -1,6 +1,6 @@
 import { Projects, Tasks } from './models/enums';
 
-declare type FunctionDict = Record<string, ((target: string) => Promise<void>) | undefined>;
+declare type FunctionDict = Record<string, ((target: string, value: Record<string, unknown>) => Promise<void>) | undefined>;
 declare type ActionDict = Record<string, FunctionDict | undefined>;
 class Generator {
   private static instance?: Generator;
@@ -16,7 +16,7 @@ class Generator {
     return this.instance;
   }
 
-  public register(project: Projects, task: Tasks, func: (target: string) => Promise<void>): void {
+  public register(project: Projects, task: Tasks, func: (target: string, value: Record<string, unknown>) => Promise<void>): void {
     if (this.dict[project] === undefined) {
       this.dict[project] = {};
     }
@@ -27,15 +27,14 @@ class Generator {
     this.dict[project]![task] = func;
   }
 
-  public async runOrDie(project: Projects, task: Tasks, target: string): Promise<void> {
+  public async runOrDie(project: Projects, task: Tasks, target: string, ORMDecorators: Record<string, unknown>): Promise<void> {
     if (this.dict[project] === undefined) {
       throw new Error(`${project} is not implemented or registered`);
     }
     if (this.dict[project]?.[task] === undefined) {
       throw new Error(`${project} - ${task} is not implemented or registered`);
     }
-
-    await this.dict[project]?.[task]?.(target);
+    await this.dict[project]?.[task]?.(target, ORMDecorators);
   }
 }
 

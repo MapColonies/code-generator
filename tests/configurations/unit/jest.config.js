@@ -25,5 +25,6 @@ module.exports = {
   },
   moduleNameMapper: {
     mockService: '<rootDir>/tests/__mocks__',
+    "^axios$": "axios/dist/node/axios.cjs",
   },
 };
