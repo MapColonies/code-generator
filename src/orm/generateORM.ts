@@ -6,8 +6,11 @@ import {
   Pycsw3DCatalogRecord,
   PolygonPartRecord,
   ICatalogDBEntityMapping,
+  IValidationConfigInfo,
+  IPropCatalogDBMapping,
 } from '@map-colonies/mc-model-types';
-import { ClassDeclaration, Project, Scope, SourceFile } from 'ts-morph';
+import { camelCase } from 'change-case-all';
+import { ClassDeclaration, DecoratorStructure, OptionalKind, Project, Scope, SourceFile } from 'ts-morph';
 import Generator from '../generator';
 import { Projects, Tasks } from '../models/enums';
 import { ImportManager } from '../utills/importManager';
@@ -37,6 +40,7 @@ export class OrmGenerator {
   private readonly importManager: ImportManager;
   private project!: Project;
   private targetFile!: SourceFile;
+  private relevantDecorators:  OptionalKind<DecoratorStructure>[] = [];
 
   public constructor(private readonly targetFilePath: string, private readonly entity: IOrmCatalog) {
     this.importManager = new ImportManager();
@@ -47,7 +51,6 @@ export class OrmGenerator {
 
     const ormEntity = this.entity.getORMCatalogEntityMappings();
 
-    console.log('ormEntity', ormEntity);
     this.importManager.addImport('typeorm', ['Column', 'Entity']);
     const classDeclaration = this.createClass(ormEntity);
     this.addProperties(classDeclaration);
@@ -57,13 +60,10 @@ export class OrmGenerator {
     await this.targetFile.save();
   }
 
-  //add column decorator
   private addProperties(classDeclaration: ClassDeclaration): void {
     const dbFields = this.entity.getORMCatalogMappings();
-    console.log('dbFields', dbFields);
     dbFields.forEach((field) => {
       const type = field.field?.overrideType !== undefined ? field.field.overrideType : field.mappingType;
-      console.log('type   >>>   overrideType | mappingType:  ', type, '   >>>   ', field.field);
       this.importManager.addType(type);
       let typeName = type.value;
       if (type.type == PropertiesTypes.ARRAY || type.type == PropertiesTypes.ENUM_ARRAY) {
@@ -80,8 +80,9 @@ export class OrmGenerator {
 
       const columnDecoratorName = field.column.columnType ?? ORMColumnType.COLUMN;
       this.importManager.addImport('typeorm', [columnDecoratorName]);
+      field.index && this.importManager.addImport('typeorm', ['Index']);
+      field.validation && this.importManager.addImport('typeorm', ['Check']);
 
-      const { columnType, ...rest } = field.column as unknown as Record<string, unknown>;
       classDeclaration.addProperty({
         scope: Scope.Public,
         name: field.prop,
@@ -89,12 +90,7 @@ export class OrmGenerator {
         initializer: initializer,
         hasExclamationToken: hasExclamationToken,
         hasQuestionToken: field.column.nullable,
-        decorators: [
-          {
-            name: columnDecoratorName,
-            arguments: [this.objectToString(rest)],
-          },
-        ],
+        decorators: this.getRelevantDecorators(field),
       });
     });
   }
@@ -150,6 +146,94 @@ export class OrmGenerator {
       case 'symbol':
       case 'function':
         throw new Error(`unsupported value type: ${typeof value}`);
+    }
+  }
+
+  private getRelevantDecorators = (field: IPropCatalogDBMapping) => {
+    const columnDecoratorName = field.column.columnType ?? ORMColumnType.COLUMN;
+    const { columnType, ...rest } = field.column as unknown as Record<string, unknown>;
+    const columnDecorator = { name: columnDecoratorName, arguments: [this.objectToString(rest)] };
+    this.relevantDecorators.push(columnDecorator);
+
+    if (field.index) {
+      this.relevantDecorators.push({ name: 'Index', arguments: [this.objectToString({ ...field.index })] })
+    }
+
+    const generateCheck = process.argv.slice(2)
+    console.log("generateCheck", generateCheck)
+
+    // if(generateCheck){
+      if (field.customChecks) {
+        field.customChecks.map((check: { 'name'?: string, 'expression': string }) =>
+          this.relevantDecorators.push({ name: 'Check', arguments: [`'${check.name}', "${check.expression}"`] }));
+      }
+
+      const minAndMaxValidations = field.validation?.filter((validation: IValidationConfigInfo) =>
+        ((validation.min && (validation.min !== '$NOW')) || (validation.max && (validation.max !== '$NOW'))));
+      
+      field.validation?.map((validation: IValidationConfigInfo) =>{
+        if(field.column.name && !minAndMaxValidations?.includes(validation) && (validation.max || validation.min || validation.pattern || validation.maxLength || validation.minLength))
+        this.relevantDecorators.push({ name: 'Check', arguments: this.generateValidationArguments(validation, field.column.name) })
+      });
+
+      this.generateMinMaxCheckDecorator(minAndMaxValidations, field);
+    // }
+
+    return this.relevantDecorators;
+  }
+
+  private generateMinMaxCheckDecorator = (minAndMaxValidations: IValidationConfigInfo[] | undefined, field: IPropCatalogDBMapping) => {
+    const mergedValidations: IValidationConfigInfo[] = [];
+    let minValidation: IValidationConfigInfo | undefined;
+    let maxValidation: IValidationConfigInfo | undefined;
+
+    for (const validation of minAndMaxValidations || []) {
+      if (validation.min) {
+        minValidation = { ...validation }
+      }
+      if (validation.max) {
+        maxValidation = { ...validation };
+      }
+    }
+
+    if (minValidation && maxValidation) {
+      mergedValidations.push({
+        errorMsgCode: minValidation.errorMsgCode,
+        valueType: minValidation.valueType,
+        min: minValidation.min,
+        max: maxValidation.max,
+      });
+    } else if (minValidation) {
+      mergedValidations.push(minValidation);
+    } else if (maxValidation) {
+      mergedValidations.push(maxValidation);
+    }
+
+    mergedValidations?.map((validation) => {
+      field.column.name && this.relevantDecorators.push({
+        name: 'Check', arguments: 
+          [`'${camelCase(field.column.name)}'`, `'${field.column.name} ${this.generateMinMaxExpression(validation, field.column.name)}'`]
+      })
+    });
+  }
+
+  private generateMinMaxExpression = (validation: IValidationConfigInfo, columnName: string) => {
+    if ((validation.max && validation.min)) {
+      return `BETWEEN ${validation.min ?? columnName} AND ${validation.max}`
+    } else if (validation.max) {
+      return `< ${validation.max}`
+    } else {
+      return `> ${validation.min}`
+    }
+  }
+
+  private generateValidationArguments = (validation: IValidationConfigInfo, fieldCalumnName: string) => {
+    if (validation.pattern) {
+      return [`'${camelCase(fieldCalumnName)}'`, `'${fieldCalumnName} ${validation.pattern}'`]
+    } else if (validation.min === '$NOW') {
+      return [`'${camelCase(fieldCalumnName)}'`, `'${fieldCalumnName} > now()'`]
+    } else if (validation.max === '$NOW') {
+      return [`'${camelCase(fieldCalumnName)}'`, `'${fieldCalumnName} < now()'`]
     }
   }
 }
