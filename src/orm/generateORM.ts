@@ -10,7 +10,7 @@ import {
   IPropCatalogDBMapping,
 } from '@map-colonies/mc-model-types';
 import { camelCase } from 'change-case-all';
-import { ClassDeclaration, DecoratorStructure, OptionalKind, Project, Scope, SourceFile } from 'ts-morph';
+import { ClassDeclaration, DecoratorStructure, OptionalKind, Project, Scope, SourceFile, VariableDeclarationKind } from 'ts-morph';
 import Generator from '../generator';
 import { Projects, Tasks } from '../models/enums';
 import { ImportManager } from '../utills/importManager';
@@ -41,7 +41,6 @@ export class OrmGenerator {
   private project!: Project;
   private targetFile!: SourceFile;
   private relevantDecorators: OptionalKind<DecoratorStructure>[] = [];
-  private SUPPORTED_DECORATORS = ['Index', 'Check'];
 
   public constructor(private readonly targetFilePath: string, private readonly entity: IOrmCatalog, private readonly ORMDecorators?: string[]) {
     this.importManager = new ImportManager();
@@ -71,7 +70,7 @@ export class OrmGenerator {
         typeName = `${typeName}[]`;
       }
       let hasExclamationToken = field.column.nullable !== undefined;
-      let initializer = this.valueToString((this.entity as unknown as Record<string, unknown>)[field.prop]);
+      let initializer = this.valueToString(['', (this.entity as unknown as Record<string, unknown>)[field.prop]]);
       if (initializer !== undefined) {
         if (type.type == PropertiesTypes.ENUM) {
           initializer = `${initializer} as ${type.value}`;
@@ -93,9 +92,19 @@ export class OrmGenerator {
         hasQuestionToken: field.column.nullable,
         decorators: this.getRelevantDecorators(field),
       });
+
       this.relevantDecorators = [];
+      this.addEmptyLine(classDeclaration);
     });
   }
+
+  private addEmptyLine = (classDeclaration: ClassDeclaration) => {
+    const lastField = classDeclaration.getProperties().pop();
+    const lastFieldPosition = lastField?.getPos();
+    if (lastFieldPosition != undefined && lastFieldPosition >= 0) {
+      classDeclaration.insertText(lastFieldPosition, '\n');
+    }
+  };
 
   private createClass(ormEntity: ICatalogDBEntityMapping): ClassDeclaration {
     const classDeclaration = this.targetFile.addClass({
@@ -116,16 +125,16 @@ export class OrmGenerator {
   }
 
   private objectToString(column: Record<string, unknown>): string {
-    const dataParts: string[] = ['{'];
+    const dataParts: string[] = ['{ '];
     const props = Object.entries(column);
     props.forEach((pair: [string, unknown], index: number) => {
-      const parsed = this.valueToString(pair[1]);
+      const parsed = this.valueToString(pair);
       const value = parsed !== undefined ? parsed : 'undefined';
       let stringifyKey = `${pair[0]}: ${value}`;
       if (index !== props.length - 1) {
         stringifyKey += ',';
       }
-      dataParts.push(stringifyKey);
+      dataParts.push(stringifyKey + ' ');
     });
     dataParts.push('}');
     const data = dataParts.join('');
@@ -133,16 +142,20 @@ export class OrmGenerator {
     return data;
   }
 
-  private valueToString(value: unknown): string | undefined {
+  private valueToString(pair: [string, unknown]): string | undefined {
+    const value = pair[1];
     switch (typeof value) {
       case 'object':
-        return this.objectToString(value as Record<string, unknown>);
+        if (Array.isArray(value)) return `[${value.map((item) => `'${item}'`).join(', ')}]`;
+        else {
+          return this.objectToString(value as Record<string, unknown>);
+        }
       case 'bigint':
       case 'boolean':
       case 'number':
         return value.toString();
       case 'string':
-        return `'${value}'`;
+        return pair[0] !== 'enum' ? `'${value}'` : `${value}`;
       case 'undefined':
         return undefined;
       case 'symbol':
@@ -156,10 +169,47 @@ export class OrmGenerator {
     return !!this.ORMDecorators?.includes(decoratorProp);
   }
 
+  private generateVariable = (generateValuesConstName: string, enumValues: string[]) => {
+    this.targetFile?.insertVariableStatement(2, {
+      isExported: true,
+      declarationKind: VariableDeclarationKind.Const,
+      declarations: [
+        {
+          name: `${generateValuesConstName}`,
+          initializer: JSON.stringify(enumValues),
+        },
+      ],
+    });
+  };
+
+  private getColumnWithEnum(field: IPropCatalogDBMapping): Record<string, unknown> {
+    const { columnType, enum: { enumName, enumValues, enumType, generateValuesConstName } = {}, ...rest } = field.column;
+    let columnWithEnumField: Record<string, unknown> = {
+      ...rest,
+      ...(enumName ? { enumName } : {}),
+    };
+    if (enumValues) {
+      generateValuesConstName && this.generateVariable(generateValuesConstName, enumValues);
+      columnWithEnumField = {
+        ...columnWithEnumField,
+        enum: generateValuesConstName ?? enumValues,
+      };
+    } else if (enumType) {
+      columnWithEnumField = {
+        ...rest,
+        enumName,
+        enum: enumType,
+      };
+    }
+    return columnWithEnumField;
+  }
+
   private getRelevantDecorators = (field: IPropCatalogDBMapping) => {
     const columnDecoratorName = field.column.columnType ?? ORMColumnType.COLUMN;
     const { columnType, ...rest } = field.column as unknown as Record<string, unknown>;
-    const columnDecorator = { name: columnDecoratorName, arguments: [this.objectToString(rest)] };
+    const columnArguments: string[] = [];
+    columnArguments.push(this.objectToString(field.column.enum ? this.getColumnWithEnum(field) : rest));
+    const columnDecorator = { name: columnDecoratorName, arguments: columnArguments };
     this.relevantDecorators.push(columnDecorator);
 
     if (this.isDecoratorExists('index') && field.index) {
@@ -167,7 +217,6 @@ export class OrmGenerator {
     }
 
     if (this.isDecoratorExists('check')) {
-      console.log('D&E');
       if (field.customChecks) {
         field.customChecks.map((check: { name?: string; expression: string }) =>
           this.relevantDecorators.push({ name: 'Check', arguments: [`'${check.name}', "${check.expression}"`] })
