@@ -41,6 +41,7 @@ export class OrmGenerator {
   private project!: Project;
   private targetFile!: SourceFile;
   private relevantDecorators: OptionalKind<DecoratorStructure>[] = [];
+  private classDecorators: OptionalKind<DecoratorStructure>[] = [];
 
   public constructor(private readonly targetFilePath: string, private readonly entity: IOrmCatalog, private readonly ORMDecorators?: string[]) {
     this.importManager = new ImportManager();
@@ -54,7 +55,7 @@ export class OrmGenerator {
     this.importManager.addImport('typeorm', ['Column', 'Entity']);
     const classDeclaration = this.createClass(ormEntity);
     this.addProperties(classDeclaration);
-
+    this.classDecorators.map((decrator)=> classDeclaration.addDecorator(decrator));
     this.importManager.generateImports(this.targetFile);
 
     await this.targetFile.save();
@@ -87,6 +88,7 @@ export class OrmGenerator {
         scope: Scope.Public,
         name: field.prop,
         type: typeName,
+        isReadonly: field.field?.isReadonly,
         initializer: initializer,
         hasExclamationToken: hasExclamationToken,
         hasQuestionToken: field.column.nullable,
@@ -124,9 +126,12 @@ export class OrmGenerator {
     this.targetFile.insertStatements(0, AUTO_GENERATED_COMMENT + '\n' + DISABLE_LINT_RULES);
   }
 
-  private objectToString(column: Record<string, unknown>): string {
+  private objectToString(object: Record<string, unknown>): string {
     const dataParts: string[] = ['{ '];
-    const props = Object.entries(column);
+    const props = Object.entries(object);
+    if (props.length === 0){
+      return '';
+    }
     props.forEach((pair: [string, unknown], index: number) => {
       const parsed = this.valueToString(pair);
       const value = parsed !== undefined ? parsed : 'undefined';
@@ -139,6 +144,7 @@ export class OrmGenerator {
     dataParts.push('}');
     const data = dataParts.join('');
     data.trim();
+
     return data;
   }
 
@@ -232,17 +238,22 @@ export class OrmGenerator {
           field.column.name &&
           !minAndMaxValidations?.includes(validation) &&
           (validation.max || validation.min || validation.pattern || validation.maxLength || validation.minLength)
-        )
-          this.relevantDecorators.push({ name: 'Check', arguments: this.generateValidationArguments(validation, field.column.name) });
+        ){
+          if(validation.valueType ==='field'){
+            this.classDecorators.push({ name: 'Check', arguments: this.generateValidationArguments(validation, field.column.name) });
+          }else{
+            this.relevantDecorators.push({ name: 'Check', arguments: this.generateValidationArguments(validation, field.column.name) });
+          }
+        }
       });
 
-      this.generateMinMaxCheckDecorator(minAndMaxValidations, field);
+      this.generateMinMaxCheckDecorator(minAndMaxValidations, field.column.name ?? "");
     }
 
     return this.relevantDecorators;
   };
 
-  private generateMinMaxCheckDecorator = (minAndMaxValidations: IValidationConfigInfo[] | undefined, field: IPropCatalogDBMapping) => {
+  private generateMinMaxCheckDecorator = (minAndMaxValidations: IValidationConfigInfo[] | undefined, columnName: string) => {
     const mergedValidations: IValidationConfigInfo[] = [];
     let minValidation: IValidationConfigInfo | undefined;
     let maxValidation: IValidationConfigInfo | undefined;
@@ -270,11 +281,15 @@ export class OrmGenerator {
     }
 
     mergedValidations?.map((validation) => {
-      field.column.name &&
-        this.relevantDecorators.push({
-          name: 'Check',
-          arguments: [`'${camelCase(field.column.name)}'`, `'${field.column.name} ${this.generateMinMaxExpression(validation, field.column.name)}'`],
-        });
+      const checkDecorator = {
+        name: 'Check',
+        arguments: [`'${camelCase(columnName)}'`, `'${columnName} ${this.generateMinMaxExpression(validation, columnName)}'`],
+      };
+      if(validation.valueType !== 'field'){
+        this.relevantDecorators.push(checkDecorator)
+      }else {
+        this.classDecorators.push(checkDecorator)
+      }
     });
   };
 
