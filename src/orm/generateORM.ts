@@ -55,7 +55,7 @@ export class OrmGenerator {
     this.importManager.addImport('typeorm', ['Column', 'Entity']);
     const classDeclaration = this.createClass(ormEntity);
     this.addProperties(classDeclaration);
-    this.classDecorators.map((decrator)=> classDeclaration.addDecorator(decrator));
+    this.classDecorators.map((decrator) => classDeclaration.addDecorator(decrator));
     this.importManager.generateImports(this.targetFile);
 
     await this.targetFile.save();
@@ -129,7 +129,7 @@ export class OrmGenerator {
   private objectToString(object: Record<string, unknown>): string {
     const dataParts: string[] = ['{ '];
     const props = Object.entries(object);
-    if (props.length === 0){
+    if (!props.length) {
       return '';
     }
     props.forEach((pair: [string, unknown], index: number) => {
@@ -238,16 +238,16 @@ export class OrmGenerator {
           field.column.name &&
           !minAndMaxValidations?.includes(validation) &&
           (validation.max || validation.min || validation.pattern || validation.maxLength || validation.minLength)
-        ){
-          if(validation.valueType ==='field'){
+        ) {
+          if (validation.valueType === 'field') {
             this.classDecorators.push({ name: 'Check', arguments: this.generateValidationArguments(validation, field.column.name) });
-          }else{
+          } else {
             this.relevantDecorators.push({ name: 'Check', arguments: this.generateValidationArguments(validation, field.column.name) });
           }
         }
       });
 
-      this.generateMinMaxCheckDecorator(minAndMaxValidations, field.column.name ?? "");
+      this.generateMinMaxCheckDecorator(minAndMaxValidations, field.column.name ?? '');
     }
 
     return this.relevantDecorators;
@@ -283,12 +283,12 @@ export class OrmGenerator {
     mergedValidations?.map((validation) => {
       const checkDecorator = {
         name: 'Check',
-        arguments: [`'${camelCase(columnName)}'`, `'${columnName} ${this.generateMinMaxExpression(validation, columnName)}'`],
+        arguments: [`'${camelCase(columnName)}'`, `'"${columnName}" ${this.generateMinMaxExpression(validation, columnName)}'`],
       };
-      if(validation.valueType !== 'field'){
-        this.relevantDecorators.push(checkDecorator)
-      }else {
-        this.classDecorators.push(checkDecorator)
+      if (validation.valueType !== 'field') {
+        this.relevantDecorators.push(checkDecorator);
+      } else {
+        this.classDecorators.push(checkDecorator);
       }
     });
   };
@@ -305,11 +305,15 @@ export class OrmGenerator {
 
   private generateValidationArguments = (validation: IValidationConfigInfo, fieldCalumnName: string) => {
     if (validation.pattern) {
-      return [`'${camelCase(fieldCalumnName)}'`, `'${fieldCalumnName} ${validation.pattern}'`];
+      const pattern = validation.pattern;
+      return [
+        `'${camelCase(fieldCalumnName)}'`,
+        `'"${fieldCalumnName}" ~ "${pattern.includes('\\') ? pattern.replace(/\\/g, '\\\\\\\\') : pattern}"'`,
+      ];
     } else if (validation.min === '$NOW') {
-      return [`'${camelCase(fieldCalumnName)}'`, `'${fieldCalumnName} > now()'`];
+      return [`'${camelCase(fieldCalumnName)}'`, `'"${fieldCalumnName}" > now()'`];
     } else if (validation.max === '$NOW') {
-      return [`'${camelCase(fieldCalumnName)}'`, `'${fieldCalumnName} < now()'`];
+      return [`'${camelCase(fieldCalumnName)}'`, `'"${fieldCalumnName}" < now()'`];
     }
   };
 }
