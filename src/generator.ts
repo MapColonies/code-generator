@@ -22,7 +22,7 @@ class Generator {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.dict[project]![task] = func;
   }
-  public async runOrDie(project: Projects, task: Tasks, target: string, ORMDecorators: string[]): Promise<void> {
+  public async runOrDie(project: Projects, task: Tasks, target: string, ORMDecorators: string[] | undefined = []): Promise<void> {
     if (this.dict[project] === undefined) {
       throw new Error(`${project} is not implemented or registered`);
     }

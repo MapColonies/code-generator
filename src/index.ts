@@ -11,14 +11,14 @@ parser.add_argument('-v', '--version', { action: 'version', version });
 parser.add_argument('-tf', '--targetFile');
 parser.add_argument('-p', '--project');
 parser.add_argument('-gt', '--generateTask');
-parser.add_argument('-ormd', '--ORMDecorators'); // -ormd=[check, index ...]
+parser.add_argument('-ormd', '--ORMDecorators');
 
 const args = parser.parse_args() as Record<string, string>;
-const ORMDecorators: string = args['ORMDecorators'];
 const targetFilePath: string = args['targetFile'];
 const projectName: Projects = args['project'] as Projects;
 const generateTask: Tasks = args['generateTask'] as Tasks;
-const decorators = ORMDecorators?.split(',').map((decorator) => decorator.trim());
+const ORMDecorators: string | undefined = args['ORMDecorators'];
+const decorators: string[] | undefined = ORMDecorators?.split(',').map((decorator) => decorator.trim());
 
 const main = async (): Promise<void> => {
   try {

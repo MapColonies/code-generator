@@ -10,7 +10,8 @@ import {
   IPropCatalogDBMapping,
 } from '@map-colonies/mc-model-types';
 import { camelCase } from 'change-case-all';
-import { ClassDeclaration, DecoratorStructure, OptionalKind, Project, Scope, SourceFile, VariableDeclarationKind } from 'ts-morph';
+import { ClassDeclaration, DecoratorStructure, OptionalKind, Project, Scope, SourceFile } from 'ts-morph';
+import { generateVariable, objectToString, valueToString } from './orm.helper';
 import Generator from '../generator';
 import { Projects, Tasks } from '../models/enums';
 import { ImportManager } from '../utills/importManager';
@@ -80,7 +81,7 @@ export class OrmGenerator {
         typeName = `${typeName}[]`;
       }
       let hasExclamationToken = fieldDescriptor.column.nullable !== undefined;
-      let initializer = this.valueToString(['', (this.entity as unknown as Record<string, unknown>)[fieldDescriptor.prop]]);
+      let initializer = valueToString(['', (this.entity as unknown as Record<string, unknown>)[fieldDescriptor.prop]]);
       if (initializer !== undefined) {
         if (type.type == PropertiesTypes.ENUM) {
           initializer = `${initializer} as ${type.value}`;
@@ -127,100 +128,21 @@ export class OrmGenerator {
     this.targetFile.insertStatements(0, AUTO_GENERATED_COMMENT + '\n' + DISABLE_LINT_RULES);
   }
 
-  private objectToString(object: Record<string, unknown>): string {
-    const dataParts: string[] = ['{ '];
-    const props = Object.entries(object);
-    if (!props.length) {
-      return '';
-    }
-    props.forEach((pair: [string, unknown], index: number) => {
-      const parsed = this.valueToString(pair);
-      const value = parsed !== undefined ? parsed : 'undefined';
-      let stringifyKey = `${pair[0]}: ${value}`;
-      if (index !== props.length - 1) {
-        stringifyKey += ',';
-      }
-      dataParts.push(stringifyKey + ' ');
-    });
-    dataParts.push('}');
-    const data = dataParts.join('');
-    data.trim();
-
-    return data;
-  }
-
-  private valueToString(pair: [string, unknown]): string | undefined {
-    const value = pair[1];
-    switch (typeof value) {
-      case 'object':
-        if (Array.isArray(value)) return `[${value.map((item) => `'${item}'`).join(', ')}]`;
-        else {
-          return this.objectToString(value as Record<string, unknown>);
-        }
-      case 'bigint':
-      case 'boolean':
-      case 'number':
-        return value.toString();
-      case 'string':
-        return pair[0] !== 'enum' ? `'${value}'` : `${value}`;
-      case 'undefined':
-        return undefined;
-      case 'symbol':
-      case 'function':
-        throw new Error(`unsupported value type: ${typeof value}`);
-    }
-  }
-
   private isDecoratorExists(decoratorName: string): boolean {
     const decoratorProp = decoratorName.toLocaleLowerCase();
     return !!this.ORMDecorators?.includes(decoratorProp);
-  }
-
-  private generateVariable = (generateValuesConstName: string, enumValues: string[]) => {
-    this.targetFile?.insertVariableStatement(2, {
-      isExported: true,
-      declarationKind: VariableDeclarationKind.Const,
-      declarations: [
-        {
-          name: `${generateValuesConstName}`,
-          initializer: JSON.stringify(enumValues),
-        },
-      ],
-    });
-  };
-
-  private getColumnWithEnum(field: IPropCatalogDBMapping): Record<string, unknown> {
-    const { columnType, enum: { enumName, enumValues, enumType, generateValuesConstName } = {}, ...rest } = field.column;
-    let columnWithEnumField: Record<string, unknown> = {
-      ...rest,
-      ...(enumName ? { enumName } : {}),
-    };
-    if (enumValues) {
-      generateValuesConstName && this.generateVariable(generateValuesConstName, enumValues);
-      columnWithEnumField = {
-        ...columnWithEnumField,
-        enum: generateValuesConstName ?? enumValues,
-      };
-    } else if (enumType) {
-      columnWithEnumField = {
-        ...rest,
-        enumName,
-        enum: enumType,
-      };
-    }
-    return columnWithEnumField;
   }
 
   private getRelevantDecorators = (field: IPropCatalogDBMapping) => {
     const columnDecoratorName = field.column.columnType ?? ORMColumnType.COLUMN;
     const { columnType, ...rest } = field.column as unknown as Record<string, unknown>;
     const columnArguments: string[] = [];
-    columnArguments.push(this.objectToString(field.column.enum ? this.getColumnWithEnum(field) : rest));
+    columnArguments.push(objectToString(field.column.enum ? this.getColumnWithEnum(field) : rest));
     const columnDecorator = { name: columnDecoratorName, arguments: columnArguments };
     this.relevantDecorators.push(columnDecorator);
 
     if (this.isDecoratorExists('index') && field.index) {
-      this.relevantDecorators.push({ name: 'Index', arguments: [this.objectToString({ ...field.index })] });
+      this.relevantDecorators.push({ name: 'Index', arguments: [objectToString({ ...field.index })] });
     }
 
     if (this.isDecoratorExists('check')) {
@@ -253,6 +175,28 @@ export class OrmGenerator {
 
     return this.relevantDecorators;
   };
+
+  private getColumnWithEnum(field: IPropCatalogDBMapping): Record<string, unknown> {
+    const { columnType, enum: { enumName, enumValues, enumType, generateValuesConstName } = {}, ...rest } = field.column;
+    let columnWithEnumField: Record<string, unknown> = {
+      ...rest,
+      ...(enumName ? { enumName } : {}),
+    };
+    if (enumValues) {
+      generateValuesConstName && generateVariable(this.targetFile, 2, generateValuesConstName, enumValues, 'Const');
+      columnWithEnumField = {
+        ...columnWithEnumField,
+        enum: generateValuesConstName ?? enumValues,
+      };
+    } else if (enumType) {
+      columnWithEnumField = {
+        ...rest,
+        enumName,
+        enum: enumType,
+      };
+    }
+    return columnWithEnumField;
+  }
 
   private updateMinMaxCheckDecorator = (minAndMaxValidations: IValidationConfigInfo[] | undefined, columnName: string) => {
     const mergedValidations: IValidationConfigInfo[] = [];
