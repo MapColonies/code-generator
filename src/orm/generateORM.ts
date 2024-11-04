@@ -63,15 +63,24 @@ export class OrmGenerator {
 
   private addProperties(classDeclaration: ClassDeclaration): void {
     const dbFields = this.entity.getORMCatalogMappings();
-    dbFields.forEach((field) => {
-      const type = field.field?.overrideType !== undefined ? field.field.overrideType : field.mappingType;
+
+    const propertySeparator = () => {
+      const lastField = classDeclaration.getProperties().pop();
+      const lastFieldPosition = lastField?.getPos();
+      if (lastFieldPosition != undefined && lastFieldPosition >= 0) {
+        classDeclaration.insertText(lastFieldPosition, '\n');
+      }
+    };
+
+    dbFields.forEach((fieldDescriptor) => {
+      const type = fieldDescriptor.field?.overrideType !== undefined ? fieldDescriptor.field.overrideType : fieldDescriptor.mappingType;
       this.importManager.addType(type);
       let typeName = type.value;
       if (type.type == PropertiesTypes.ARRAY || type.type == PropertiesTypes.ENUM_ARRAY) {
         typeName = `${typeName}[]`;
       }
-      let hasExclamationToken = field.column.nullable !== undefined;
-      let initializer = this.valueToString(['', (this.entity as unknown as Record<string, unknown>)[field.prop]]);
+      let hasExclamationToken = fieldDescriptor.column.nullable !== undefined;
+      let initializer = this.valueToString(['', (this.entity as unknown as Record<string, unknown>)[fieldDescriptor.prop]]);
       if (initializer !== undefined) {
         if (type.type == PropertiesTypes.ENUM) {
           initializer = `${initializer} as ${type.value}`;
@@ -79,34 +88,26 @@ export class OrmGenerator {
         hasExclamationToken = false;
       }
 
-      const columnDecoratorName = field.column.columnType ?? ORMColumnType.COLUMN;
+      const columnDecoratorName = fieldDescriptor.column.columnType ?? ORMColumnType.COLUMN;
       this.importManager.addImport('typeorm', [columnDecoratorName]);
-      field.index && this.importManager.addImport('typeorm', ['Index']);
-      field.validation && this.importManager.addImport('typeorm', ['Check']);
+      fieldDescriptor.index && this.importManager.addImport('typeorm', ['Index']);
+      fieldDescriptor.validation && this.importManager.addImport('typeorm', ['Check']);
 
       classDeclaration.addProperty({
         scope: Scope.Public,
-        name: field.prop,
+        name: fieldDescriptor.prop,
         type: typeName,
-        isReadonly: field.field?.isReadonly,
+        isReadonly: fieldDescriptor.field?.isReadonly,
         initializer: initializer,
         hasExclamationToken: hasExclamationToken,
-        hasQuestionToken: field.column.nullable,
-        decorators: this.getRelevantDecorators(field),
+        hasQuestionToken: fieldDescriptor.column.nullable,
+        decorators: this.getRelevantDecorators(fieldDescriptor),
       });
 
       this.relevantDecorators = [];
-      this.addEmptyLine(classDeclaration);
+      propertySeparator();
     });
   }
-
-  private addEmptyLine = (classDeclaration: ClassDeclaration) => {
-    const lastField = classDeclaration.getProperties().pop();
-    const lastFieldPosition = lastField?.getPos();
-    if (lastFieldPosition != undefined && lastFieldPosition >= 0) {
-      classDeclaration.insertText(lastFieldPosition, '\n');
-    }
-  };
 
   private createClass(ormEntity: ICatalogDBEntityMapping): ClassDeclaration {
     const classDeclaration = this.targetFile.addClass({
@@ -240,23 +241,33 @@ export class OrmGenerator {
           (validation.max || validation.min || validation.pattern || validation.maxLength || validation.minLength)
         ) {
           if (validation.valueType === 'field') {
-            this.classDecorators.push({ name: 'Check', arguments: this.generateValidationArguments(validation, field.column.name) });
+            this.classDecorators.push({ name: 'Check', arguments: this.getCheckDecoratorArguments(validation, field.column.name) });
           } else {
-            this.relevantDecorators.push({ name: 'Check', arguments: this.generateValidationArguments(validation, field.column.name) });
+            this.relevantDecorators.push({ name: 'Check', arguments: this.getCheckDecoratorArguments(validation, field.column.name) });
           }
         }
       });
 
-      this.generateMinMaxCheckDecorator(minAndMaxValidations, field.column.name ?? '');
+      this.updateMinMaxCheckDecorator(minAndMaxValidations, field.column.name ?? '');
     }
 
     return this.relevantDecorators;
   };
 
-  private generateMinMaxCheckDecorator = (minAndMaxValidations: IValidationConfigInfo[] | undefined, columnName: string) => {
+  private updateMinMaxCheckDecorator = (minAndMaxValidations: IValidationConfigInfo[] | undefined, columnName: string) => {
     const mergedValidations: IValidationConfigInfo[] = [];
     let minValidation: IValidationConfigInfo | undefined;
     let maxValidation: IValidationConfigInfo | undefined;
+
+    const getMinMaxExpression = (validation: IValidationConfigInfo, columnName: string) => {
+      if (validation.max && validation.min) {
+        return `BETWEEN ${validation.min ?? columnName} AND ${validation.max}`;
+      } else if (validation.max) {
+        return `< ${validation.max}`;
+      } else {
+        return `> ${validation.min}`;
+      }
+    };
 
     for (const validation of minAndMaxValidations || []) {
       if (validation.min) {
@@ -283,7 +294,7 @@ export class OrmGenerator {
     mergedValidations?.map((validation) => {
       const checkDecorator = {
         name: 'Check',
-        arguments: [`'${camelCase(columnName)}'`, `'"${columnName}" ${this.generateMinMaxExpression(validation, columnName)}'`],
+        arguments: [`'${camelCase(columnName)}'`, `'"${columnName}" ${getMinMaxExpression(validation, columnName)}'`],
       };
       if (validation.valueType !== 'field') {
         this.relevantDecorators.push(checkDecorator);
@@ -293,17 +304,7 @@ export class OrmGenerator {
     });
   };
 
-  private generateMinMaxExpression = (validation: IValidationConfigInfo, columnName: string) => {
-    if (validation.max && validation.min) {
-      return `BETWEEN ${validation.min ?? columnName} AND ${validation.max}`;
-    } else if (validation.max) {
-      return `< ${validation.max}`;
-    } else {
-      return `> ${validation.min}`;
-    }
-  };
-
-  private generateValidationArguments = (validation: IValidationConfigInfo, fieldCalumnName: string) => {
+  private getCheckDecoratorArguments = (validation: IValidationConfigInfo, fieldCalumnName: string) => {
     if (validation.pattern) {
       const pattern = validation.pattern;
       return [

@@ -67,9 +67,7 @@
   "dependencies": {
     "argparse": "^2.0.1",
     "change-case-all": "^2.1.0",
-    "ts-morph": "^10.0.2",
-    "typeorm": "^0.3.20",
-    "zod": "^3.23.8"
+    "ts-morph": "^10.0.2"
   },
   "peerDependencies": {
     "@map-colonies/mc-model-types": ">=4.0.0"

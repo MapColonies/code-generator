@@ -25,3 +25,5 @@ in your project package.json add script for generate:
  * -tf --targetFile  - path to the generated file, override file if  exists. (no default)
 
  * -gt --generateType  - type of the wished generated code, avaiable values: orm, graphQl. (no default)
+
+ * -ormd --ORMDecorators  - ORM additional decorators of the wished generated file, avaiable values: index, check. (no default)
