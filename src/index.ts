@@ -17,8 +17,8 @@ const args = parser.parse_args() as Record<string, string>;
 const targetFilePath: string = args['targetFile'];
 const projectName: Projects = args['project'] as Projects;
 const generateTask: Tasks = args['generateTask'] as Tasks;
-const ORMDecorators: string | undefined = args['ORMDecorators'];
-const decorators: string[] | undefined = ORMDecorators?.split(',').map((decorator) => decorator.trim());
+const ORMDecorators: string = args['ORMDecorators'];
+const decorators: string[] | undefined = ORMDecorators.split(',').map((decorator) => decorator.trim());
 
 const main = async (): Promise<void> => {
   try {
