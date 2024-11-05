@@ -1,4 +1,5 @@
 import { Projects, Tasks } from './models/enums';
+
 declare type FunctionDict = Record<string, ((target: string, value: string[]) => Promise<void>) | undefined>;
 declare type ActionDict = Record<string, FunctionDict | undefined>;
 class Generator {
@@ -22,7 +23,7 @@ class Generator {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.dict[project]![task] = func;
   }
-  public async runOrDie(project: Projects, task: Tasks, target: string, ORMDecorators: string[] | undefined = []): Promise<void> {
+  public async runOrDie(project: Projects, task: Tasks, target: string, ORMDecorators: string[]): Promise<void> {
     if (this.dict[project] === undefined) {
       throw new Error(`${project} is not implemented or registered`);
     }
