@@ -2,7 +2,14 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "sourceMap": true,
-    "noEmit": false
+    "noEmit": false,
+    "target": "ES6",
+    "module": "CommonJS",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist"
   },
 
   "include": ["src"],
