@@ -6,6 +6,8 @@ import { mockEnum } from "mockPackage";
 
 @InputType()
 export class MockLayerInput {
+    @Field((type) => LinkInput, { nullable: true })
+    public idInput?: LinkInput;
     @Field({ nullable: true })
     public lifecycleEnvolvedFalse?: string;
     @Field({ nullable: true })
@@ -28,6 +30,8 @@ export const mockScalarObject = new GraphQLScalarType({ name: "mockScalarObject"
 
 @ObjectType()
 export class MockLayer {
+    @Field((type) => LinkInput, { nullable: true })
+    public idInput?: LinkInput;
     @Field({ nullable: true })
     public lifecycleEnvolvedTrue?: string;
     @Field({ nullable: true })

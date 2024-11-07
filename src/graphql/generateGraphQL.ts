@@ -9,6 +9,10 @@ const DISABLE_LINT_RULES = '/* eslint-disable import/exports-last, @typescript-e
 const NOT_FOUND = -1;
 let importManager: ImportManager;
 
+const getPropertyType = (mappingType: IDescribeTsType) => {
+  return mappingType.type === 'class' ? `${getType(mappingType)}Input` : getType(mappingType);
+};
+
 const generateGraphQL = async (targetFilePath: string): Promise<void> => {
   importManager = new ImportManager();
   const graphQLClasses = getGraphQLClassMapping();
@@ -19,7 +23,7 @@ const generateGraphQL = async (targetFilePath: string): Promise<void> => {
     classDeclaration.addProperty({
       scope: Scope.Public,
       name: field.prop,
-      type: getType(field.mappingType),
+      type: getPropertyType(field.mappingType),
       hasQuestionToken: field.nullable,
       decorators: [
         {
@@ -196,7 +200,7 @@ const parseOptions = (field: IPropGraphQLMapping, targetFile: SourceFile): strin
       break;
 
     case PropertiesTypes.CLASS:
-      returnType = `(type) => ${field.mappingType.value}`;
+      returnType = `(type) => ${getPropertyType(field.mappingType)}`;
       break;
 
     case PropertiesTypes.ARRAY:

@@ -6,6 +6,14 @@ export const getGraphQLClassMapping = (): IGraphQLClassMapping[] => {
       name: 'MockLayer',
       fields: [
         {
+          prop: 'idInput',
+          nullable: true,
+          mappingType: {
+            value: 'Link',
+            type: PropertiesTypes.CLASS,
+          }
+        },
+        {
           prop: 'lifecycleEnvolvedTrue',
           nullable: true,
           mappingType: {
