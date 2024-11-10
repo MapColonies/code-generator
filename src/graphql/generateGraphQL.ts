@@ -176,7 +176,7 @@ export class GraphqlGenerator {
         break;
 
       case PropertiesTypes.PRIMITIVE:
-        returnType = `(type) => [${parseValue(field.mappingType.value)}]`;
+        returnType = `(type) => ${parseValue(field.mappingType.value)}`;
         break;
     }
 
