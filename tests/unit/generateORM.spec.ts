@@ -1,12 +1,14 @@
 import { promises } from 'fs';
 import { SourceFile, Project, ClassDeclaration } from 'ts-morph';
 import { IColumnProps } from '@map-colonies/mc-model-types'
+import { basicFieldsWithDecorators, extendedFieldsDecorators, Source as SourceBasicFieldDescriptors, SourceFieldDescriptors } from '../data/ORM/mocks';
 import { OrmGenerator } from '../../src/orm/generateORM';
-import { fields, Source } from '../data/ORM/mocks';
+import * as helperOrm from '../../src/orm/orm.helper';
 
+//Basic
 describe('generateORM', function () {
   const targetFilePath = 'tests/data/ORM//output.ts';
-  const expectedFilePath = 'tests/data/ORM/expected.ts';
+  const expectedFilePath = 'tests/data/ORM/basicFieldsAndTheyDecorators.expected.ts';
   let getORMCatalogMappingsSpy: jest.SpyInstance;
   let getORMCatalogEntityMappingsSpy: jest.SpyInstance;
   let createSourceFileSpy: jest.SpyInstance;
@@ -20,17 +22,17 @@ describe('generateORM', function () {
   let generator: OrmGenerator;
 
   beforeEach(() => {
-    generator = new OrmGenerator(targetFilePath,new Source());
+    generator = new OrmGenerator(targetFilePath, new SourceBasicFieldDescriptors());
     // spy functions
-    getORMCatalogMappingsSpy = jest.spyOn(Source.prototype, 'getORMCatalogMappings');
-    getORMCatalogEntityMappingsSpy = jest.spyOn(Source.prototype, 'getORMCatalogEntityMappings');
+    getORMCatalogMappingsSpy = jest.spyOn(SourceBasicFieldDescriptors.prototype, 'getORMCatalogMappings');
+    getORMCatalogEntityMappingsSpy = jest.spyOn(SourceBasicFieldDescriptors.prototype, 'getORMCatalogEntityMappings');
     createSourceFileSpy = jest.spyOn(Project.prototype, 'createSourceFile');
     addClassSpy = jest.spyOn(SourceFile.prototype, 'addClass');
     addDecoratorSpy = jest.spyOn(ClassDeclaration.prototype, 'addDecorator');
     addImportDeclarationSpy = jest.spyOn(SourceFile.prototype, 'addImportDeclaration');
     addPropertySpy = jest.spyOn(ClassDeclaration.prototype, 'addProperty');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    objectToStringSpy = jest.spyOn<any,any>(generator,'objectToString');
+    objectToStringSpy = jest.spyOn<any, any>(helperOrm, 'objectToString');
   });
 
   afterEach(() => {
@@ -38,9 +40,9 @@ describe('generateORM', function () {
     jest.restoreAllMocks();
   });
 
-  it('should successfuly generate ORM mapping class',async () => {
+  it('should successfuly generate ORM class', async () => {
     // mock
-    saveSpy = jest.spyOn(SourceFile.prototype, 'save').mockImplementation( async () => {
+    saveSpy = jest.spyOn(SourceFile.prototype, 'save').mockImplementation(async () => {
       return Promise.resolve();
     });
 
@@ -54,12 +56,12 @@ describe('generateORM', function () {
     expect(addClassSpy).toHaveBeenCalledTimes(1);
     expect(addDecoratorSpy).toHaveBeenCalledTimes(1);
     expect(addImportDeclarationSpy).toHaveBeenCalledTimes(2);
-    expect(addPropertySpy).toHaveBeenCalledTimes(fields.length);
+    expect(addPropertySpy).toHaveBeenCalledTimes(basicFieldsWithDecorators.length);
     expect(saveSpy).toHaveBeenCalledTimes(1);
-    expect(objectToStringSpy).toHaveBeenCalledTimes(fields.length);
+    expect(objectToStringSpy).toHaveBeenCalledTimes(basicFieldsWithDecorators.length);
   });
 
-  it('should create the ORM class equal to the expected class', async () => {
+  it('should create the ORM class with basic fields and they decorators', async () => {
     // mock
     let outputFileContent = '';
     // used typescript feature https://www.typescriptlang.org/docs/handbook/functions.html (see "this parameters")
@@ -89,18 +91,103 @@ describe('generateORM', function () {
     await expect(action).rejects.toThrow();
     saveSpy.mockReset();
     saveSpy.mockRestore();
-  })
+  });
+});
+
+//Expanded
+describe('generateExtendedFields', function () {
+  const targetFilePath = 'tests/data/ORM/output.ts';
+  const expectedFilePath = 'tests/data/ORM/extendedFieldsAndTheyDecorators.expected.ts';
+  let generator: OrmGenerator;
+
+  let getORMCatalogMappingsSpy: jest.SpyInstance;
+  let getORMCatalogEntityMappingsSpy: jest.SpyInstance;
+  let createSourceFileSpy: jest.SpyInstance;
+  let addClassSpy: jest.SpyInstance;
+  let addDecoratorSpy: jest.SpyInstance;
+  let addImportDeclarationSpy: jest.SpyInstance;
+  let addPropertySpy: jest.SpyInstance;
+  let saveSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    generator = new OrmGenerator(targetFilePath, new SourceFieldDescriptors(), ['index', 'check']);
+
+    // spy functions
+    getORMCatalogMappingsSpy = jest.spyOn(SourceFieldDescriptors.prototype, 'getORMCatalogMappings');
+    getORMCatalogEntityMappingsSpy = jest.spyOn(SourceFieldDescriptors.prototype, 'getORMCatalogEntityMappings');
+    createSourceFileSpy = jest.spyOn(Project.prototype, 'createSourceFile');
+    addClassSpy = jest.spyOn(SourceFile.prototype, 'addClass');
+    addDecoratorSpy = jest.spyOn(ClassDeclaration.prototype, 'addDecorator');
+    addImportDeclarationSpy = jest.spyOn(SourceFile.prototype, 'addImportDeclaration');
+    addPropertySpy = jest.spyOn(ClassDeclaration.prototype, 'addProperty');
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+    jest.restoreAllMocks();
+  });
+
+  it('should successfuly generate ORM class', async () => {
+    // mock
+    saveSpy = jest.spyOn(SourceFile.prototype, 'save').mockImplementation(async () => {
+      return Promise.resolve();
+    });
+
+    // action
+    await generator.generate();
+
+    // expect
+    expect(getORMCatalogMappingsSpy).toHaveBeenCalledTimes(1);
+    expect(getORMCatalogEntityMappingsSpy).toHaveBeenCalledTimes(1);
+    expect(createSourceFileSpy).toHaveBeenCalledTimes(1);
+    expect(addClassSpy).toHaveBeenCalledTimes(1);
+    expect(addImportDeclarationSpy).toHaveBeenCalledTimes(3);
+    expect(addPropertySpy).toHaveBeenCalledTimes(extendedFieldsDecorators.length);
+    expect(saveSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should create the ORM class with fields and they decorators', async () => {
+    // mock
+    let outputFileContent = '';
+    saveSpy = jest.spyOn(SourceFile.prototype, 'save').mockImplementation(
+      async function (this: SourceFile) {
+        outputFileContent = this.getFullText();
+        return Promise.resolve();
+      }
+    );
+
+    // action
+    const expectedFileContent = await promises.readFile(expectedFilePath, { encoding: 'utf8' });
+    await generator.generate();
+
+    // expect
+    expect(outputFileContent).toEqual(expectedFileContent);
+  });
+
+  it('should check how many times a decorator is applied above the class', async () => {
+    // mock
+    let outputFileContent = '';
+    saveSpy = jest.spyOn(SourceFile.prototype, 'save').mockImplementation(
+      async function (this: SourceFile) {
+        outputFileContent = this.getFullText();
+        return Promise.resolve();
+      }
+    );
+
+    // action
+    const expectedFileContent = await promises.readFile(expectedFilePath, { encoding: 'utf8' });
+    await generator.generate();
+    const decoratorRegex = /^@(Entity|Check)\s*\([^\n]*\)/gm;
+    const numberOfClassDecoratorsExpected = expectedFileContent.match(decoratorRegex);
+    const numberOfClassDecoratorsOutput = outputFileContent.match(decoratorRegex);
+
+    // expect
+    expect(numberOfClassDecoratorsExpected).toEqual(numberOfClassDecoratorsOutput)
+    expect(addDecoratorSpy).toHaveBeenCalledTimes(numberOfClassDecoratorsExpected != null ? numberOfClassDecoratorsExpected.length : 0)
+  });
 });
 
 describe('objectToString', function () {
-  const targetFilePath = 'tests/data/ORM//output.ts';
-  let generator: OrmGenerator;
-
-  beforeEach(() => {
-    generator = new OrmGenerator(targetFilePath,new Source());
-    // spy functions
-
-  });
 
   afterEach(() => {
     jest.resetAllMocks();
@@ -109,12 +196,24 @@ describe('objectToString', function () {
 
   it('should successfuly convert column properties object to string', () => {
     // mock
-    const decoratorAttr: IColumnProps = {name: "name", type: "text", nullable: true};
-    const expectedResult = `{name: 'name',type: 'text',nullable: true}`;
+    const decoratorAttr: IColumnProps = { name: "name", type: "text", nullable: true };
+    const expectedResult = `{ name: 'name', type: 'text', nullable: true }`;
 
     // action
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-explicit-any
-    const result: string = (generator as any).objectToString(decoratorAttr);
+    const result: string = helperOrm.objectToString(decoratorAttr as unknown as Record<string, unknown>);
+
+    // expect
+    expect(typeof result).toBe('string');
+    expect(result).toEqual(expectedResult);
+  });
+
+  it('should successfully convert an object with an array as value to a string', () => {
+    // mock
+    const decoratorAttr: Record<string, unknown> = { 'enum': ["name", "text", "enum", "value"] }
+    const expectedResult = `{ enum: ['name', 'text', 'enum', 'value'] }`;
+
+    // action
+    const result = helperOrm.objectToString(decoratorAttr);
 
     // expect
     expect(typeof result).toBe('string');

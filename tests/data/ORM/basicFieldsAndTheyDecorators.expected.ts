@@ -3,18 +3,24 @@
 import { Column, Entity, UpdateDateColumn } from "typeorm";
 import { PropertiesTypes } from "@map-colonies/mc-model-types";
 
-@Entity({name: 'records'})
+@Entity({ name: 'records' })
 export class Metadata {
-    @Column({name: 'identifier',type: 'text',nullable: true})
+
+    @Column({ name: 'identifier', type: 'text', nullable: true })
     public id?: string;
-    @Column({name: 'array',type: 'text',nullable: true})
+
+    @Column({ name: 'array', type: 'text', nullable: true })
     public array?: string[];
-    @Column({name: 'enum',type: 'text',nullable: true})
+
+    @Column({ name: 'enum', type: 'text', nullable: true })
     public enum?: PropertiesTypes;
-    @Column({name: 'enumArray',type: 'text',nullable: true})
+
+    @Column({ name: 'enumArray', type: 'text', nullable: true })
     public enumArray?: PropertiesTypes[];
-    @Column({name: 'test',type: 'text',nullable: true})
+
+    @Column({ name: 'test', type: 'text', nullable: true })
     public test?: number;
-    @UpdateDateColumn({name: 'update_date',type: 'timestamp without time zone',nullable: true})
+
+    @UpdateDateColumn({ name: 'update_date', type: 'timestamp without time zone', nullable: true })
     public updateDate?: Date;
 }

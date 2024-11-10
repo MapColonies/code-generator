@@ -136,7 +136,6 @@ export class OrmGenerator {
 
   private isDecoratorExists(decoratorName: string): boolean {
     const decoratorProp = decoratorName.toLocaleLowerCase();
-    // return !!this.ORMDecorators?.includes(decoratorProp);
     return this.ORMDecorators?.includes(decoratorProp) ?? false;
   }
 
@@ -157,37 +156,26 @@ export class OrmGenerator {
         field.customChecks.map((check: { name?: string; expression: string }) =>
           this.relevantDecorators.push({
             name: 'Check',
-            arguments: [`'${check.name ?? ''}', "${check.expression}"`]  ////////// ASKD
+            arguments: [`'${check.name ?? ''}', "${check.expression}"`],
           })
         );
       }
 
-      // const minAndMaxValidations = field.validation?.filter(
-      //   (validation: IValidationConfigInfo) => {
-      //     (validation.min && validation.min !== '$NOW') || (validation.max && validation.max !== '$NOW')
-      //   }
-      // );
-
       const minAndMaxValidations = field.validation?.filter(
-        (validation: IValidationConfigInfo) => {
-          // const isMinValid = validation.min && validation.min !== '$NOW';
-          // const isMinValid = (validation.min && validation.min !== '$NOW') === true ? true : false;
-          const isMinValid = Boolean(validation.min) && validation.min !== '$NOW';
-
-          const isMaxValid = Boolean(validation.max) && validation.max !== '$NOW';
-
-          // const isMaxValid = validation.max && validation.max !== '$NOW';
-
-          return isMinValid || isMaxValid;
-        }
+        (validation: IValidationConfigInfo) =>
+          (validation.min != undefined && validation.min !== '$NOW') || (validation.max != undefined && validation.max !== '$NOW')
       );
-
 
       field.validation?.map((validation: IValidationConfigInfo) => {
         if (
-          field.column.name &&
-          !minAndMaxValidations?.includes(validation) &&
-          (validation.max || validation.min || validation.pattern || validation.maxLength || validation.minLength)
+          field.column.name !== undefined &&
+          minAndMaxValidations &&
+          !minAndMaxValidations.includes(validation) &&
+          (validation.max != undefined ||
+            validation.min != undefined ||
+            validation.pattern != undefined ||
+            validation.maxLength != undefined ||
+            validation.minLength != undefined)
         ) {
           if (validation.valueType === 'field') {
             this.classDecorators.push({ name: 'Check', arguments: this.getCheckDecoratorArguments(validation, field.column.name) });
@@ -201,22 +189,24 @@ export class OrmGenerator {
     }
 
     return this.relevantDecorators;
-  };
+  }
 
   private getColumnWithEnum(field: IPropCatalogDBMapping): Record<string, unknown> {
     const { columnType, enum: { enumName, enumValues, enumType, generateValuesConstName } = {}, ...rest } = field.column;
     let columnWithEnumField: Record<string, unknown> = {
       ...rest,
-      ...(enumName ? { enumName } : {}),
+      ...(enumName != '' && enumName != undefined ? { enumName } : {}),
     };
     if (enumValues) {
       const position = 2;
-      generateValuesConstName && generateVariable(this.targetFile, position, generateValuesConstName, enumValues, 'Const');
+      if (generateValuesConstName !== '' && generateValuesConstName != undefined) {
+        generateVariable(this.targetFile, position, generateValuesConstName, enumValues, 'Const');
+      }
       columnWithEnumField = {
         ...columnWithEnumField,
         enum: generateValuesConstName ?? enumValues,
       };
-    } else if (enumType) {
+    } else if (enumType != undefined && enumType != '') {
       columnWithEnumField = {
         ...rest,
         enumName,
@@ -232,21 +222,21 @@ export class OrmGenerator {
     let maxValidation: IValidationConfigInfo | undefined;
 
     const getMinMaxExpression = (validation: IValidationConfigInfo, columnName: string): string => {
-      if (validation.max && validation.min) {
+      if (validation.max != undefined && validation.min != undefined) {
         return `BETWEEN ${columnName} AND ${validation.max}`;
-      } else if (validation.max) {
+      } else if (validation.max != undefined) {
         return `< ${validation.max}`;
-      } else  if (validation.min){
+      } else if (validation.min != undefined) {
         return `> ${validation.min}`;
       }
       return '';
     };
 
     for (const validation of minAndMaxValidations ?? []) {
-      if (validation.min) {
+      if (validation.min != undefined) {
         minValidation = { ...validation };
       }
-      if (validation.max) {
+      if (validation.max != undefined) {
         maxValidation = { ...validation };
       }
     }
@@ -275,7 +265,7 @@ export class OrmGenerator {
         this.classDecorators.push(checkDecorator);
       }
     });
-  };
+  }
 
   private getCheckDecoratorArguments(validation: IValidationConfigInfo, fieldCalumnName: string): string[] | undefined {
     if (validation.pattern != null) {
@@ -289,5 +279,5 @@ export class OrmGenerator {
     } else if (validation.max === '$NOW') {
       return [`'${camelCase(fieldCalumnName)}'`, `'"${fieldCalumnName}" < now()'`];
     }
-  };
+  }
 }
