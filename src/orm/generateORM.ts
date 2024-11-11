@@ -92,11 +92,11 @@ export class OrmGenerator {
       const columnDecoratorName = fieldDescriptor.column.columnType ?? ORMColumnType.COLUMN;
       this.importManager.addImport('typeorm', [columnDecoratorName]);
 
-      if (fieldDescriptor.index) {
+      if (this.isDecoratorExists('index') && fieldDescriptor.index) {
         this.importManager.addImport('typeorm', ['Index']);
       }
 
-      if (fieldDescriptor.index) {
+      if (this.isDecoratorExists('check') && (fieldDescriptor.validation || fieldDescriptor.customChecks)) {
         this.importManager.addImport('typeorm', ['Check']);
       }
 

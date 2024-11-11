@@ -45,7 +45,7 @@
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-conventional": "^11.0.0",
     "@map-colonies/eslint-config": "^2.2.0",
-    "@map-colonies/mc-model-types": "file:../mc-models/map-colonies-mc-model-types-17.7.0.tgz",
+    "@map-colonies/mc-model-types": "^11.2.0",
     "@map-colonies/prettier-config": "0.0.1",
     "@types/argparse": "^2.0.5",
     "@types/jest": "^26.0.19",
