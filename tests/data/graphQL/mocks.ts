@@ -1,5 +1,7 @@
 import { IGraphQLClassMapping, PropertiesTypes } from '@map-colonies/mc-model-types';
 
+export {TsTypes} from '@map-colonies/mc-model-types';
+
 export const getGraphQLClassMapping = (): IGraphQLClassMapping[] => {
   return [
     {
