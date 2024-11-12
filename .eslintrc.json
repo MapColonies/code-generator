@@ -3,5 +3,23 @@
   "extends": ["@map-colonies/eslint-config/jest", "@map-colonies/eslint-config/ts-base"],
   "parserOptions": {
     "project": "./tsconfig.lint.json"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "rules": {
+        "@typescript-eslint/naming-convention": [
+          "error",
+          {
+            "selector": "variable",
+            "format": ["camelCase", "UPPER_CASE"],
+            "filter": {
+              "regex": "^ORMDecorators$",
+              "match": false
+            }
+          }
+        ]
+      }
+    }
+  ]
 }
