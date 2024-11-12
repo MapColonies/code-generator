@@ -7,7 +7,7 @@ const entity: ICatalogDBEntityMapping = {
   className: 'Metadata'
 };
 
-export const basicFieldsWithDecorators: IPropCatalogDBMapping[] = [
+const basicFieldsWithDecorators: IPropCatalogDBMapping[] = [
   {
     prop: 'id',
     column: { name: 'identifier', type: 'text', nullable: true },
@@ -41,7 +41,7 @@ export const basicFieldsWithDecorators: IPropCatalogDBMapping[] = [
   },
 ];
 
-export const extendedFieldsDecorators: IPropCatalogDBMapping[] = [
+const extendedFieldsDecorators: IPropCatalogDBMapping[] = [
   {
     prop: 'productId',
     column: { name: 'product_id', type: 'text', nullable: false, collation: 'C.UTF-8', },
@@ -193,7 +193,7 @@ export const extendedFieldsDecorators: IPropCatalogDBMapping[] = [
   },
 ];
 
-export class Source implements IOrmCatalog {
+class Source implements IOrmCatalog {
   public getORMCatalogMappings(): IPropCatalogDBMapping[] {
     return basicFieldsWithDecorators;
   };
@@ -203,7 +203,7 @@ export class Source implements IOrmCatalog {
   };
 }
 
-export class SourceFieldDescriptors implements IOrmCatalog {
+class SourceFieldDescriptors implements IOrmCatalog {
   public getORMCatalogMappings(): IPropCatalogDBMapping[] {
     return extendedFieldsDecorators;
   };
@@ -213,3 +213,4 @@ export class SourceFieldDescriptors implements IOrmCatalog {
   };
 };
 
+export {basicFieldsWithDecorators, extendedFieldsDecorators, Source, SourceFieldDescriptors}

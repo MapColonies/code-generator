@@ -8,7 +8,7 @@ import * as helperOrm from '../../src/orm/orm.helper';
 //Basic
 describe('generateORM', function () {
   const targetFilePath = 'tests/data/ORM//output.ts';
-  const expectedFilePath = 'tests/data/ORM/basicFieldsAndTheyDecorators.expected.ts';
+  const expectedFilePath = 'tests/data/ORM/basicFieldsAndTheyDecorators.expected.txt';
   let getORMCatalogMappingsSpy: jest.SpyInstance;
   let getORMCatalogEntityMappingsSpy: jest.SpyInstance;
   let createSourceFileSpy: jest.SpyInstance;
@@ -97,7 +97,7 @@ describe('generateORM', function () {
 //Expanded
 describe('generateExtendedFields', function () {
   const targetFilePath = 'tests/data/ORM/output.ts';
-  const expectedFilePath = 'tests/data/ORM/extendedFieldsAndTheyDecorators.expected.ts';
+  const expectedFilePath = 'tests/data/ORM/extendedFieldsAndTheyDecorators.expected.txt';
   let generator: OrmGenerator;
 
   let getORMCatalogMappingsSpy: jest.SpyInstance;
