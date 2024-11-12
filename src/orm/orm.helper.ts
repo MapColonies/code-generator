@@ -28,8 +28,9 @@ export const valueToString = (pair: [string, unknown]): string | undefined => {
   const value = pair[1];
   switch (typeof value) {
     case 'object':
-      if (Array.isArray(value)) return `[${value.map((item) => `'${item}'`).join(', ')}]`;
-      else {
+      if (Array.isArray(value)) {
+        return `[${value.map((item: string) => `'${item}'`).join(', ')}]`;
+      } else {
         return objectToString(value as Record<string, unknown>);
       }
     case 'bigint':
@@ -46,8 +47,14 @@ export const valueToString = (pair: [string, unknown]): string | undefined => {
   }
 };
 
-export const generateVariable = (targetFile: SourceFile, position: number, varName: string, values: string[], varDeclaration: VAR_DECLARETION) => {
-  targetFile?.insertVariableStatement(position, {
+export const generateVariable = (
+  targetFile: SourceFile,
+  position: number,
+  varName: string,
+  values: string[],
+  varDeclaration: VAR_DECLARETION
+): void => {
+  targetFile.insertVariableStatement(position, {
     isExported: true,
     declarationKind: VariableDeclarationKind[varDeclaration],
     declarations: [
