@@ -3,7 +3,7 @@ import { promises } from 'fs';
 import { Project, SourceFile } from 'ts-morph';
 import Generator from '../../src/generator';
 
-xdescribe('generateGraphQL', function () {
+describe.skip('generateGraphQL', function () {
     const targetFilePath = 'tests/data/ORM//out`put.ts';
     const expectedFilePath = 'tests/data/graphQL/expected.ts';
     let generator: { dict: Record<string,Record<string, ((target: string) => Promise<void>)>> };
