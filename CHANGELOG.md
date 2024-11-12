@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/MapColonies/code-generator/compare/v1.5.0...v1.6.0) (2024-11-12)
+
+
+### Features
+
+* fix github workflows ([#14](https://github.com/MapColonies/code-generator/issues/14)) ([dbc2e12](https://github.com/MapColonies/code-generator/commit/dbc2e12b5f0ce0dcddb2be08d7ffa908ca1bc190))
+
+
+### Bug Fixes
+
+* github actions update ([#18](https://github.com/MapColonies/code-generator/issues/18)) ([11a69c4](https://github.com/MapColonies/code-generator/commit/11a69c41a17b7cbbab794b42c3460f0c72d350d2))
+
 ## [1.5.0](https://github.com/MapColonies/code-generator/compare/v1.4.0...v1.5.0) (2022-05-25)
 
 
