@@ -45,6 +45,7 @@
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-conventional": "^11.0.0",
     "@map-colonies/eslint-config": "^2.2.0",
+    "@map-colonies/mc-model-types": "^17.10.2",
     "@map-colonies/prettier-config": "0.0.1",
     "@types/argparse": "^2.0.5",
     "@types/jest": "^26.0.19",
@@ -69,7 +70,7 @@
     "ts-morph": "^10.0.2"
   },
   "peerDependencies": {
-    "@map-colonies/mc-model-types": ">=17.10.1"
+    "@map-colonies/mc-model-types": ">=17.10.2"
   },
   "bin": {
     "code-generator": "./dist/src/index.js"
