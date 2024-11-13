@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.7.0](https://github.com/MapColonies/code-generator/compare/v1.6.0...v1.7.0) (2024-11-13)
+
+
+### Features
+
+* update mc-models version and generate Entity decorator if isPartial is false ([#19](https://github.com/MapColonies/code-generator/issues/19)) ([0e9d63c](https://github.com/MapColonies/code-generator/commit/0e9d63c3c40d8a2cdb90e63d0fea943d05a02301))
+
 ## [1.6.0](https://github.com/MapColonies/code-generator/compare/v1.5.0...v1.6.0) (2024-11-12)
 
 
