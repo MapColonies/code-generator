@@ -121,10 +121,13 @@ export class OrmGenerator {
       name: ormEntity.className,
       isExported: true,
     });
-    classDeclaration.addDecorator({
-      name: 'Entity',
-      arguments: [`{ name: '${ormEntity.table}' }`],
-    });
+
+    if (ormEntity.isPartial !== true) {
+      classDeclaration.addDecorator({
+        name: 'Entity',
+        arguments: [`{ name: '${ormEntity.table}' }`],
+      });
+    }
     return classDeclaration;
   }
 
