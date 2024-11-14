@@ -287,7 +287,7 @@ export class OrmGenerator {
     if (validation.pattern != undefined) {
       const pattern = validation.pattern;
       return [
-        `${this.useNamingStrategy?.includes('check') === true ? `'"${pattern.includes('\\') ? pattern.replace(/\\/g, '\\\\\\\\') : pattern}"'`:
+        `${this.useNamingStrategy?.includes('check') === true ? `'"${fieldCalumnName}" ~ "${pattern.includes('\\') ? pattern.replace(/\\/g, '\\\\\\\\') : pattern}"'`:
           `'"${fieldCalumnName}" ~ "${pattern.includes('\\') ? pattern.replace(/\\/g, '\\\\\\\\') : pattern}"'`}`
       ];
     } else if (validation.min === '$NOW') {
