@@ -1,14 +1,13 @@
 import { promises } from 'fs';
 import { SourceFile, Project, ClassDeclaration } from 'ts-morph';
 import { IColumnProps } from '@map-colonies/mc-model-types'
-import { basicFieldsWithDecorators, extendedFieldsDecorators, Source as SourceBasicFieldDescriptors, SourceFieldDescriptors } from '../data/ORM/mocks';
+import { basicFieldsWithDecorators, extendedFieldsDecorators, useNamingStrategyFields, SourceBasicFieldDescriptors, SourceFieldDescriptors, SourceuseNamingStrategyFields } from '../data/ORM/mocks';
 import { OrmGenerator } from '../../src/orm/generateORM';
 import * as helperOrm from '../../src/orm/orm.helper';
 
-//Basic
 describe('generateORM', function () {
   const targetFilePath = 'tests/data/ORM//output.ts';
-  const expectedFilePath = 'tests/data/ORM/basicFieldsAndTheyDecorators.expected.txt';
+  const expectedFilePath = 'tests/data/ORM/basicFieldsAndTheirDecorators.expected.txt';
   let getORMCatalogMappingsSpy: jest.SpyInstance;
   let getORMCatalogEntityMappingsSpy: jest.SpyInstance;
   let createSourceFileSpy: jest.SpyInstance;
@@ -61,7 +60,7 @@ describe('generateORM', function () {
     expect(objectToStringSpy).toHaveBeenCalledTimes(basicFieldsWithDecorators.length);
   });
 
-  it('should create the ORM class with basic fields and they decorators', async () => {
+  it('should create the ORM class with basic fields and their decorators', async () => {
     // mock
     let outputFileContent = '';
     // used typescript feature https://www.typescriptlang.org/docs/handbook/functions.html (see "this parameters")
@@ -94,10 +93,9 @@ describe('generateORM', function () {
   });
 });
 
-//Expanded
 describe('generateExtendedFields', function () {
   const targetFilePath = 'tests/data/ORM/output.ts';
-  const expectedFilePath = 'tests/data/ORM/extendedFieldsAndTheyDecorators.expected.txt';
+  const expectedFilePath = 'tests/data/ORM/extendedFieldsAndTheirDecorators.expected.txt';
   let generator: OrmGenerator;
 
   let getORMCatalogMappingsSpy: jest.SpyInstance;
@@ -146,7 +144,99 @@ describe('generateExtendedFields', function () {
     expect(saveSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should create the ORM class with fields and they decorators', async () => {
+  it('should create the ORM class with fields and their decorators', async () => {
+    // mock
+    let outputFileContent = '';
+    saveSpy = jest.spyOn(SourceFile.prototype, 'save').mockImplementation(
+      async function (this: SourceFile) {
+        outputFileContent = this.getFullText();
+        return Promise.resolve();
+      }
+    );
+
+    // action
+    const expectedFileContent = await promises.readFile(expectedFilePath, { encoding: 'utf8' });
+    await generator.generate();
+
+    // expect
+    expect(outputFileContent).toEqual(expectedFileContent);
+  });
+
+  it('should check how many times a decorator is applied above the class', async () => {
+    // mock
+    let outputFileContent = '';
+    saveSpy = jest.spyOn(SourceFile.prototype, 'save').mockImplementation(
+      async function (this: SourceFile) {
+        outputFileContent = this.getFullText();
+        return Promise.resolve();
+      }
+    );
+
+    // action
+    const expectedFileContent = await promises.readFile(expectedFilePath, { encoding: 'utf8' });
+    await generator.generate();
+    const decoratorRegex = /^@(Entity|Check)\s*\([^\n]*\)/gm;
+    const numberOfClassDecoratorsExpected = expectedFileContent.match(decoratorRegex);
+    const numberOfClassDecoratorsOutput = outputFileContent.match(decoratorRegex);
+
+    // expect
+    expect(numberOfClassDecoratorsExpected).toEqual(numberOfClassDecoratorsOutput)
+    expect(addDecoratorSpy).toHaveBeenCalledTimes(numberOfClassDecoratorsExpected != null ? numberOfClassDecoratorsExpected.length : 0)
+  });
+});
+
+describe('useNamingStrategyFields', function () {
+  const targetFilePath = 'tests/data/ORM/output.ts';
+  const expectedFilePath = 'tests/data/ORM/useNamingStrategyFieldsAndTheirDecorators.expected.txt';
+  let generator: OrmGenerator;
+
+  let getORMCatalogMappingsSpy: jest.SpyInstance;
+  let getORMCatalogEntityMappingsSpy: jest.SpyInstance;
+  let createSourceFileSpy: jest.SpyInstance;
+  let addClassSpy: jest.SpyInstance;
+  let addDecoratorSpy: jest.SpyInstance;
+  let addImportDeclarationSpy: jest.SpyInstance;
+  let addPropertySpy: jest.SpyInstance;
+  let saveSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    generator = new OrmGenerator(targetFilePath, new SourceuseNamingStrategyFields(), ['index', 'check'], ['check']);
+
+    // spy functions
+    getORMCatalogMappingsSpy = jest.spyOn(SourceuseNamingStrategyFields.prototype, 'getORMCatalogMappings');
+    getORMCatalogEntityMappingsSpy = jest.spyOn(SourceuseNamingStrategyFields.prototype, 'getORMCatalogEntityMappings');
+    createSourceFileSpy = jest.spyOn(Project.prototype, 'createSourceFile');
+    addClassSpy = jest.spyOn(SourceFile.prototype, 'addClass');
+    addDecoratorSpy = jest.spyOn(ClassDeclaration.prototype, 'addDecorator');
+    addImportDeclarationSpy = jest.spyOn(SourceFile.prototype, 'addImportDeclaration');
+    addPropertySpy = jest.spyOn(ClassDeclaration.prototype, 'addProperty');
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+    jest.restoreAllMocks();
+  });
+
+  it('should successfuly generate ORM class', async () => {
+    // mock
+    saveSpy = jest.spyOn(SourceFile.prototype, 'save').mockImplementation(async () => {
+      return Promise.resolve();
+    });
+
+    // action
+    await generator.generate();
+
+    // expect
+    expect(getORMCatalogMappingsSpy).toHaveBeenCalledTimes(1);
+    expect(getORMCatalogEntityMappingsSpy).toHaveBeenCalledTimes(1);
+    expect(createSourceFileSpy).toHaveBeenCalledTimes(1);
+    expect(addClassSpy).toHaveBeenCalledTimes(1);
+    expect(addImportDeclarationSpy).toHaveBeenCalledTimes(2);
+    expect(addPropertySpy).toHaveBeenCalledTimes(useNamingStrategyFields.length);
+    expect(saveSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should create the ORM class with fields and their decorators', async () => {
     // mock
     let outputFileContent = '';
     saveSpy = jest.spyOn(SourceFile.prototype, 'save').mockImplementation(
