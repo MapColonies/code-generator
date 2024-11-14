@@ -239,7 +239,7 @@ export class OrmGenerator {
 
     const getMinMaxExpression = (validation: IValidationConfigInfo, columnName: string): string => {
       if (validation.max != undefined && validation.min != undefined) {
-        return `BETWEEN ${columnName} AND ${validation.max}`;
+        return `BETWEEN ${validation.min} AND ${validation.max}`;
       } else if (validation.max != undefined) {
         return `< ${validation.max}`;
       } else if (validation.min != undefined) {
