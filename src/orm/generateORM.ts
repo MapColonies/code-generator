@@ -53,7 +53,7 @@ export class OrmGenerator {
 
     const ormEntity = this.entity.getORMCatalogEntityMappings();
 
-    this.importManager.addImport('typeorm', ['Column', 'Entity']);
+    this.importManager.addImport('typeorm', ['Column']);
     const classDeclaration = this.createClass(ormEntity);
     this.addProperties(classDeclaration);
     this.classDecorators.map((decrator) => classDeclaration.addDecorator(decrator));
@@ -123,6 +123,7 @@ export class OrmGenerator {
     });
 
     if (ormEntity.isPartial !== true) {
+      this.importManager.addImport('typeorm', ['Column', 'Entity']);
       classDeclaration.addDecorator({
         name: 'Entity',
         arguments: [`{ name: '${ormEntity.table}' }`],
@@ -146,7 +147,18 @@ export class OrmGenerator {
     const columnDecoratorName = field.column.columnType ?? ORMColumnType.COLUMN;
     const { columnType, ...rest } = field.column as unknown as Record<string, unknown>;
     const columnArguments: string[] = [];
-    columnArguments.push(objectToString(field.column.enum ? this.getColumnWithEnum(field) : rest));
+
+    let fieldArguments = '';
+    if (field.column.columnType !== 'PrimaryGeneratedColumn') {
+      fieldArguments = objectToString(field.column.enum ? this.getColumnWithEnum(field) : rest);
+    } else {
+      const { type, nullable, ...leftOver } = rest;
+      const objSize = Object.keys(leftOver).length;
+      if (typeof type === 'string') {
+        fieldArguments = objSize > 0 ? `'${type}', ${objectToString(leftOver)}` : `'${type}'`;
+      }
+    }
+    columnArguments.push(fieldArguments);
     const columnDecorator = { name: columnDecoratorName, arguments: columnArguments };
     this.relevantDecorators.push(columnDecorator);
 
