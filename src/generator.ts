@@ -6,14 +6,18 @@ class Generator {
   private static instance?: Generator;
   private dict: ActionDict = {};
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private constructor() { }
+  private constructor() {}
   public static getInstance(): Generator {
     if (this.instance === undefined) {
       this.instance = new Generator();
     }
     return this.instance;
   }
-  public register(project: Projects, task: Tasks, func: (target: string, ORMDecorators: string[], useNamingStrategy: string[]) => Promise<void>): void {
+  public register(
+    project: Projects,
+    task: Tasks,
+    func: (target: string, ORMDecorators: string[], useNamingStrategy: string[]) => Promise<void>
+  ): void {
     if (this.dict[project] === undefined) {
       this.dict[project] = {};
     }
@@ -23,7 +27,13 @@ class Generator {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.dict[project]![task] = func;
   }
-  public async runOrDie(project: Projects, task: Tasks, target: string, ORMDecorators: string[] = [], useNamingStrategy: string[] = []): Promise<void> {
+  public async runOrDie(
+    project: Projects,
+    task: Tasks,
+    target: string,
+    ORMDecorators: string[] = [],
+    useNamingStrategy: string[] = []
+  ): Promise<void> {
     if (this.dict[project] === undefined) {
       throw new Error(`${project} is not implemented or registered`);
     }

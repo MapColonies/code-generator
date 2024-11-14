@@ -14,7 +14,6 @@ parser.add_argument('-gt', '--generateTask');
 parser.add_argument('-ormd', '--ORMDecorators');
 parser.add_argument('-uns', '--useNamingStrategy');
 
-
 const args = parser.parse_args() as Record<string, string>;
 const targetFilePath: string = args['targetFile'];
 const projectName: Projects = args['project'] as Projects;
@@ -23,7 +22,6 @@ const ORMDecorators: string = args['ORMDecorators'];
 const useNamingStrategyArgs: string = args['useNamingStrategy'];
 const decorators: string[] = ORMDecorators ? ORMDecorators.split(',').map((decorator) => decorator.trim()) : [];
 const useNamingStrategy: string[] = useNamingStrategyArgs ? useNamingStrategyArgs.split(',').map((arg) => arg.trim()) : [];
-
 
 const main = async (): Promise<void> => {
   try {

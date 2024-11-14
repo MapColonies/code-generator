@@ -44,7 +44,12 @@ export class OrmGenerator {
   private targetFile!: SourceFile;
   private relevantDecorators: OptionalKind<DecoratorStructure>[] = [];
 
-  public constructor(private readonly targetFilePath: string, private readonly entity: IOrmCatalog, private readonly ORMDecorators?: string[], private readonly useNamingStrategy?: string[]) {
+  public constructor(
+    private readonly targetFilePath: string,
+    private readonly entity: IOrmCatalog,
+    private readonly ORMDecorators?: string[],
+    private readonly useNamingStrategy?: string[]
+  ) {
     this.importManager = new ImportManager();
   }
 
@@ -171,8 +176,8 @@ export class OrmGenerator {
         field.customChecks.map((check: { name?: string; expression: string }) =>
           this.relevantDecorators.push({
             name: 'Check',
-            arguments: this.useNamingStrategy?.includes('check') === true ? [`"${check.expression}"`] :
-              [`'${check.name ?? ''}', "${check.expression}"`],
+            arguments:
+              this.useNamingStrategy?.includes('check') === true ? [`"${check.expression}"`] : [`'${check.name ?? ''}', "${check.expression}"`],
           })
         );
       }
@@ -273,7 +278,10 @@ export class OrmGenerator {
     mergedValidations.map((validation) => {
       const checkDecorator = {
         name: 'Check',
-        arguments: this.useNamingStrategy?.includes('check') === true ? [`'"${columnName}" ${getMinMaxExpression(validation, columnName)}'`] : [`'${camelCase(columnName)}'`, `'"${columnName}" ${getMinMaxExpression(validation, columnName)}'`],
+        arguments:
+          this.useNamingStrategy?.includes('check') === true
+            ? [`'"${columnName}" ${getMinMaxExpression(validation, columnName)}'`]
+            : [`'${camelCase(columnName)}'`, `'"${columnName}" ${getMinMaxExpression(validation, columnName)}'`],
       };
       if (validation.valueType !== 'field') {
         this.relevantDecorators.push(checkDecorator);
@@ -287,15 +295,20 @@ export class OrmGenerator {
     if (validation.pattern != undefined) {
       const pattern = validation.pattern;
       return [
-        `${this.useNamingStrategy?.includes('check') === true ? `'"${fieldCalumnName}" ~ "${pattern.includes('\\') ? pattern.replace(/\\/g, '\\\\\\\\') : pattern}"'` :
-          `'${camelCase(fieldCalumnName)}', '"${fieldCalumnName}" ~ "${pattern.includes('\\') ? pattern.replace(/\\/g, '\\\\\\\\') : pattern}"'`}`
+        `${
+          this.useNamingStrategy?.includes('check') === true
+            ? `'"${fieldCalumnName}" ~ "${pattern.includes('\\') ? pattern.replace(/\\/g, '\\\\\\\\') : pattern}"'`
+            : `'${camelCase(fieldCalumnName)}', '"${fieldCalumnName}" ~ "${pattern.includes('\\') ? pattern.replace(/\\/g, '\\\\\\\\') : pattern}"'`
+        }`,
       ];
     } else if (validation.min === '$NOW') {
-      return this.useNamingStrategy?.includes('check') === true ? [`'"${fieldCalumnName}" > now()'`] :
-        [`'${camelCase(fieldCalumnName)}'`, `'"${fieldCalumnName}" > now()'`];
+      return this.useNamingStrategy?.includes('check') === true
+        ? [`'"${fieldCalumnName}" > now()'`]
+        : [`'${camelCase(fieldCalumnName)}'`, `'"${fieldCalumnName}" > now()'`];
     } else if (validation.max === '$NOW') {
-      return this.useNamingStrategy?.includes('check') === true ? [`'"${fieldCalumnName}" < now()'`] :
-        [`'${camelCase(fieldCalumnName)}'`, `'"${fieldCalumnName}" < now()'`];
+      return this.useNamingStrategy?.includes('check') === true
+        ? [`'"${fieldCalumnName}" < now()'`]
+        : [`'${camelCase(fieldCalumnName)}'`, `'"${fieldCalumnName}" < now()'`];
     }
   }
 }
