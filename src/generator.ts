@@ -6,7 +6,7 @@ class Generator {
   private static instance?: Generator;
   private dict: ActionDict = {};
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private constructor() {}
+  private constructor() { }
   public static getInstance(): Generator {
     if (this.instance === undefined) {
       this.instance = new Generator();
