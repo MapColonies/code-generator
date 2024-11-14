@@ -7,6 +7,12 @@ const entity: ICatalogDBEntityMapping = {
   className: 'Metadata'
 };
 
+const partialEntity: ICatalogDBEntityMapping = {
+  table: 'records',
+  className: 'Metadata',
+  isPartial: true,
+};
+
 const basicFieldsWithDecorators: IPropCatalogDBMapping[] = [
   {
     prop: 'id',
@@ -193,7 +199,94 @@ const extendedFieldsDecorators: IPropCatalogDBMapping[] = [
   },
 ];
 
-class Source implements IOrmCatalog {
+const useNamingStrategyFields: IPropCatalogDBMapping[] = [
+  {
+    prop: 'id',
+    column: { name: 'id', type: 'uuid', nullable: false, columnType: ORMColumnType.PRIMARY_GENERATED_COLUMN },
+    mappingType: { value: 'string', type: PropertiesTypes.PRIMITIVE }
+  },
+  {
+    prop: 'productId',
+    column: { name: 'product_id', type: 'text', nullable: false, collation: 'C.UTF-8', },
+    index: {},
+    mappingType: { value: 'string', type: PropertiesTypes.PRIMITIVE },
+    validation: [
+      {
+        errorMsgCode: 'validation-field.productId.pattern',
+        valueType: 'value',
+        pattern: '^[A-Za-z]{1}[A-Za-z0-9_]{0,62}$',
+      },]
+  },
+  {
+    prop: 'sourceResolutionMeter',
+    column: {
+      name: 'source_resolution_meter',
+      type: 'numeric',
+      nullable: false,
+    },
+    mappingType: { value: 'number', type: PropertiesTypes.PRIMITIVE },
+    validation: [
+      {
+        errorMsgCode: 'validation-general.required',
+        required: true,
+      },
+      {
+        errorMsgCode: 'validation-field.maxResolutionMeter.min',
+        valueType: 'value',
+        min: 0.0185,
+      },
+      {
+        errorMsgCode: 'validation-field.maxResolutionMeter.max',
+        valueType: 'value',
+        max: 78271.52,
+      },
+    ],
+  },
+  {
+    prop: 'imagingTimeBeginUTC',
+    mappingType: { value: 'Date', type: PropertiesTypes.PRIMITIVE },
+    column: {
+      name: 'imaging_time_begin_utc',
+      type: 'timestamp with time zone',
+      nullable: false,
+    },
+    index: {}, validation: [
+      {
+        errorMsgCode: 'validation-general.required',
+        required: true,
+      },
+      {
+        errorMsgCode: 'validation-field.sourceDateStart.max',
+        valueType: 'field',
+        max: 'imagingTimeEndUTC',
+      },
+      {
+        errorMsgCode: 'validation-general.date.future',
+        valueType: 'value',
+        max: '$NOW',
+      },
+    ],
+  },
+  {
+    prop: 'footprint',
+    column: { name: 'footprint', type: 'geometry', spatialFeatureType: 'Polygon', srid: 4326, nullable: false, },
+    field: { overrideType: { value: 'Polygon', type: PropertiesTypes.OBJECT, importFromPackage: 'geojson' } },
+    mappingType: { value: 'string', type: PropertiesTypes.OBJECT },
+    customChecks: [
+      {
+        name: 'valid geometry',
+        expression: `ST_IsValid('footprint')`,
+      },
+      {
+        name: 'geometry extent',
+        expression: `Box2D('footprint') @Box2D(ST_GeomFromText('LINESTRING(-180 -90, 180 90)'))`,
+      },
+    ],
+    index: { spatial: true },
+  },
+]
+
+class SourceBasicFieldDescriptors implements IOrmCatalog {
   public getORMCatalogMappings(): IPropCatalogDBMapping[] {
     return basicFieldsWithDecorators;
   };
@@ -213,4 +306,14 @@ class SourceFieldDescriptors implements IOrmCatalog {
   };
 };
 
-export {basicFieldsWithDecorators, extendedFieldsDecorators, Source, SourceFieldDescriptors}
+class SourceuseNamingStrategyFields implements IOrmCatalog {
+  public getORMCatalogMappings(): IPropCatalogDBMapping[] {
+    return useNamingStrategyFields;
+  };
+
+  public getORMCatalogEntityMappings(): ICatalogDBEntityMapping {
+    return partialEntity;
+  };
+};
+
+export {basicFieldsWithDecorators, extendedFieldsDecorators, useNamingStrategyFields, SourceBasicFieldDescriptors, SourceFieldDescriptors, SourceuseNamingStrategyFields}

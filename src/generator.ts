@@ -1,6 +1,6 @@
 import { Projects, Tasks } from './models/enums';
 
-declare type FunctionDict = Record<string, ((target: string, value: string[]) => Promise<void>) | undefined>;
+declare type FunctionDict = Record<string, ((target: string, ORMDecorators: string[], useNamingStrategy: string[]) => Promise<void>) | undefined>;
 declare type ActionDict = Record<string, FunctionDict | undefined>;
 class Generator {
   private static instance?: Generator;
@@ -13,7 +13,11 @@ class Generator {
     }
     return this.instance;
   }
-  public register(project: Projects, task: Tasks, func: (target: string, value: string[]) => Promise<void>): void {
+  public register(
+    project: Projects,
+    task: Tasks,
+    func: (target: string, ORMDecorators: string[], useNamingStrategy: string[]) => Promise<void>
+  ): void {
     if (this.dict[project] === undefined) {
       this.dict[project] = {};
     }
@@ -23,14 +27,20 @@ class Generator {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.dict[project]![task] = func;
   }
-  public async runOrDie(project: Projects, task: Tasks, target: string, ORMDecorators: string[] = []): Promise<void> {
+  public async runOrDie(
+    project: Projects,
+    task: Tasks,
+    target: string,
+    ORMDecorators: string[] = [],
+    useNamingStrategy: string[] = []
+  ): Promise<void> {
     if (this.dict[project] === undefined) {
       throw new Error(`${project} is not implemented or registered`);
     }
     if (this.dict[project]?.[task] === undefined) {
       throw new Error(`${project} - ${task} is not implemented or registered`);
     }
-    await this.dict[project]?.[task]?.(target, ORMDecorators);
+    await this.dict[project]?.[task]?.(target, ORMDecorators, useNamingStrategy);
   }
 }
 export default Generator.getInstance();
