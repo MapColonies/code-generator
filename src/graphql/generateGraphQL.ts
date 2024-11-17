@@ -164,7 +164,11 @@ const getType = (mappingType: IDescribeTsType, graphQLClassType?: string, isPars
   if (mappingType.type === PropertiesTypes.OBJECT) {
     return `Record<string, unknown>`;
   } else if (mappingType.type === PropertiesTypes.CLASS) {
-    return `${mappingType.value}Input`;
+    if (graphQLClassType && graphQLClassType.indexOf('Input') > NOT_FOUND) {
+      return `${mappingType.value}Input`;
+    } else {
+      return `${mappingType.value}`;
+    }
   }
   return mappingType.value;
 };
