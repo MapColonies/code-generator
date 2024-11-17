@@ -40,10 +40,10 @@ export class MockLayer {
     public idStringArray?: string[];
     @Field({ nullable: true })
     public idString?: string;
-    @Field((type) => [LinkInput], { nullable: true })
-    public idInputArray?: LinkInput[];
-    @Field((type) => LinkInput, { nullable: true })
-    public idInput?: LinkInput;
+    @Field((type) => [Link], { nullable: true })
+    public idInputArray?: Link[];
+    @Field((type) => Link, { nullable: true })
+    public idInput?: Link;
     @Field({ nullable: true })
     public lifecycleEnvolvedTrue?: string;
     @Field({ nullable: true })
