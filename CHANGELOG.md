@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.7.1](https://github.com/MapColonies/code-generator/compare/v1.7.0...v1.7.1) (2024-11-17)
+
+
+### Bug Fixes
+
+* add new condition in getType func ([#20](https://github.com/MapColonies/code-generator/issues/20)) ([a06ab28](https://github.com/MapColonies/code-generator/commit/a06ab289396b12454c3e2835926235a9a2ae9104))
+
 ## [1.7.0](https://github.com/MapColonies/code-generator/compare/v1.6.0...v1.7.0) (2024-11-13)
 
 
