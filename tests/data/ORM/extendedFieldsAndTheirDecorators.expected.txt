@@ -30,7 +30,7 @@ export class Metadata {
     public footprint!: Polygon;
 
     @Column({ name: 'source_resolution_meter', type: 'numeric', nullable: false })
-    @Check('sourceResolutionMeter', '"source_resolution_meter" BETWEEN source_resolution_meter AND 78271.52')
+    @Check('sourceResolutionMeter', '"source_resolution_meter" BETWEEN 0.0185 AND 78271.52')
     public sourceResolutionMeter!: number;
 
     @Column({ name: 'imaging_time_begin_utc', type: 'timestamp with time zone', nullable: false })

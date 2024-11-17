@@ -12,17 +12,20 @@ parser.add_argument('-tf', '--targetFile');
 parser.add_argument('-p', '--project');
 parser.add_argument('-gt', '--generateTask');
 parser.add_argument('-ormd', '--ORMDecorators');
+parser.add_argument('-uns', '--useNamingStrategy');
 
 const args = parser.parse_args() as Record<string, string>;
 const targetFilePath: string = args['targetFile'];
 const projectName: Projects = args['project'] as Projects;
 const generateTask: Tasks = args['generateTask'] as Tasks;
 const ORMDecorators: string = args['ORMDecorators'];
+const useNamingStrategyArgs: string = args['useNamingStrategy'];
 const decorators: string[] = ORMDecorators ? ORMDecorators.split(',').map((decorator) => decorator.trim()) : [];
+const useNamingStrategy: string[] = useNamingStrategyArgs ? useNamingStrategyArgs.split(',').map((arg) => arg.trim()) : [];
 
 const main = async (): Promise<void> => {
   try {
-    await Generator.runOrDie(projectName, generateTask, targetFilePath, decorators);
+    await Generator.runOrDie(projectName, generateTask, targetFilePath, decorators, useNamingStrategy);
   } catch (error) {
     console.log(error);
     process.exit(1);
