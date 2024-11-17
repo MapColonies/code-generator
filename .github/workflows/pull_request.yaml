@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [18.x]
+        node: [18.x, 20.x]
 
     steps:
       - name: Check out Git repository
@@ -62,5 +62,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Test Reporters
+          name: Test Reporters Node-${{ matrix.node }}
           path: reports/**
