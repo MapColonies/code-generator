@@ -86,7 +86,7 @@ export class OrmGenerator {
         typeName = `${typeName}[]`;
       }
       let hasExclamationToken = fieldDescriptor.column.nullable !== undefined;
-      let initializer = valueToString(['', (this.entity as unknown as Record<string, unknown>)[fieldDescriptor.prop]]);
+      let initializer = valueToString(['', fieldDescriptor.column.default]);
       if (initializer !== undefined) {
         if (type.type == PropertiesTypes.ENUM) {
           initializer = `${initializer} as ${type.value}`;
