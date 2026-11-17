@@ -1,8 +1,7 @@
 // ts-jest does not hoist jest.mock() calls like babel-jest does, so this must come before the imports below.
 jest.mock('@map-colonies/mc-model-types', () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const actual = jest.requireActual('@map-colonies/mc-model-types');
-  const { PropertiesTypes } = actual;
+  const actual = jest.requireActual<typeof import('@map-colonies/mc-model-types')>('@map-colonies/mc-model-types');
+  const { PropertiesTypes: propertiesTypes } = actual;
 
   const getGraphQLClassMapping = (): unknown[] => [
     {
@@ -12,14 +11,14 @@ jest.mock('@map-colonies/mc-model-types', () => {
           prop: 'payload',
           nullable: true,
           mappingType: {
-            type: PropertiesTypes.UNION,
+            type: propertiesTypes.UNION,
             value: 'Payload',
             discriminant: 'kind',
             branches: [
               { className: 'PayloadA', discriminantValue: 'a' },
               { className: 'PayloadB', discriminantValue: 'b' },
             ],
-            inputType: { type: PropertiesTypes.CLASS, value: 'PayloadFlat' },
+            inputType: { type: propertiesTypes.CLASS, value: 'PayloadFlat' },
           },
         },
         {
@@ -27,21 +26,21 @@ jest.mock('@map-colonies/mc-model-types', () => {
           prop: 'payloadAlt',
           nullable: true,
           mappingType: {
-            type: PropertiesTypes.UNION,
+            type: propertiesTypes.UNION,
             value: 'Payload',
             discriminant: 'kind',
             branches: [
               { className: 'PayloadA', discriminantValue: 'a' },
               { className: 'PayloadB', discriminantValue: 'b' },
             ],
-            inputType: { type: PropertiesTypes.CLASS, value: 'PayloadFlat' },
+            inputType: { type: propertiesTypes.CLASS, value: 'PayloadFlat' },
           },
         },
         {
           prop: 'capability',
           nullable: true,
           mappingType: {
-            type: PropertiesTypes.CLASS,
+            type: propertiesTypes.CLASS,
             value: 'CapabilityType',
             importFromPackage: '@external/capabilities',
           },
@@ -55,7 +54,7 @@ jest.mock('@map-colonies/mc-model-types', () => {
         {
           prop: 'id',
           nullable: true,
-          mappingType: { type: PropertiesTypes.PRIMITIVE, value: 'string' },
+          mappingType: { type: propertiesTypes.PRIMITIVE, value: 'string' },
         },
       ],
     },
@@ -66,7 +65,7 @@ jest.mock('@map-colonies/mc-model-types', () => {
         {
           prop: 'id',
           nullable: true,
-          mappingType: { type: PropertiesTypes.PRIMITIVE, value: 'string' },
+          mappingType: { type: propertiesTypes.PRIMITIVE, value: 'string' },
         },
       ],
     },
@@ -78,9 +77,11 @@ jest.mock('@map-colonies/mc-model-types', () => {
   };
 });
 
+/* eslint-disable import/first -- jest.mock() above must precede these imports; ts-jest does not hoist it */
 import '../../src/graphql/generateGraphQL';
 import { Project, SourceFile } from 'ts-morph';
 import Generator from '../../src/generator';
+/* eslint-enable import/first */
 
 describe('generateGraphQL - union and external type support', function () {
   const targetFilePath = 'tests/data/ORM//output.ts';
