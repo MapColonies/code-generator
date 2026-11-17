@@ -41,6 +41,9 @@
     "dist/**/*"
   ],
   "homepage": "https://github.com/MapColonies/code-generator#readme",
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-conventional": "^11.0.0",
