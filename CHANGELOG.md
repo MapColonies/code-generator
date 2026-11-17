@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.8.0](https://github.com/MapColonies/code-generator/compare/v1.7.2...v1.8.0) (2026-11-17)
+
+
+### Features
+
+* support union and external type ([#24](https://github.com/MapColonies/code-generator/issues/24)) ([00ee437](https://github.com/MapColonies/code-generator/commit/00ee437049d5bd4decafc566c2d667f96399e8cc))
+
 ### [1.7.2](https://github.com/MapColonies/code-generator/compare/v1.7.1...v1.7.2) (2025-04-06)
 
 
